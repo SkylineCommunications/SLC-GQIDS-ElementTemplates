@@ -273,6 +273,79 @@ A domain agent can separately suppress findings for parameters its device
 does not report, but this source never hides disabled, excluded-as-returned,
 or unreported rules.
 
+### Focused offline fidelity investigation
+
+**Outcome, 2026-10-23:** no supported richer, caller-context contract was
+verified in the inspected APIs. The original **all configured alarm rows plus
+separate inclusion/monitoring states** requirement is still **unfulfilled**.
+Returning every row in an API collection is not proof that the server supplied
+every configured row. No runtime implementation or source identity was
+changed to disguise this gap.
+
+The investigation checked the actual public definitions/implementation in
+`Skyline.DataMiner.Files.SLNetTypes` **10.6.10.1**. The inspected NuGet archive's
+SHA-256 is
+`74D2DC6DB409F95E87B06D2B72CC80185F66D23CD8076ECCEED78B91C150045F`.
+It also checked the official DataMinerSystem library's default branch at
+revision
+[`8452c798968b9b50a1c17f0c49241645223b795a`](https://github.com/SkylineCommunications/Skyline.DataMiner.Core.DataMinerSystem/tree/8452c798968b9b50a1c17f0c49241645223b795a)
+and the authoritative documentation linked below. This is a bounded finding
+about these inspected contracts, not a claim that no other Skyline API exists.
+
+| Inspected contract | Verified result |
+| --- | --- |
+| `GetAlarmTemplateMessage` | Selects connector, version, and template; `AsOneObject` changes response shape. No `IncludeExcluded`, separate inclusion selection, or raw-definition option exists on this request. No completeness guarantee was found. |
+| `AlarmTemplateEventMessage` / `GetAlarmTemplateResponseMessage` | Header contains group members/conditions/schedules; rows expose one `Monitored` Boolean plus threshold/type/condition encodings. No separate `Included`/`Excluded` member exists. Changing response shape does not document a richer inclusion contract. |
+| `GetAvailableAlarmTemplatesMessage` | `IncludeGroups` and `IncludeTemplates` select template kinds, not excluded parameter rows. Its response contains template metadata, not a richer rule model. |
+| `AlarmTemplateHelper` / `AlarmTemplateRow` | Uses the same one-object request and same row type. [Official helper documentation][helper-source] explicitly limits extraction/merge to Included rows. That restriction does not, by itself, prove whether the raw server request omits excluded rows. |
+| DataMinerSystem `IDmsTemplate`, `IDmsAlarmTemplate`, `IDmsStandaloneAlarmTemplate` | Exposes template identity, connector, description, and used-in-group metadata; not a richer parameter/inclusion collection. Its `DmsAlarmTemplate` retrieves the same one-object SLNet response. |
+| `GetElementProtocolResponseMessage.ExtractAlarmTemplate()` / `AlarmTemplateMap` | Represents element-applied alarm information, not the original unmerged template. The implementation clears some unmonitored filter collections and synthesizes some parameter information. It is not a completeness-preserving replacement. `AlarmTemplateDefinition` only has `Filter` and positional `QueryData`; no supported independent inclusion mapping was established. |
+| `DryRunAlarmTemplateMessage` / `DryRunAlarmTemplateParameterResponse` | Tests a supplied definition against a time range and returns severity/change counts. Not a definition retrieval or inclusion-state contract. No dry-run request was executed. |
+| `GetFileContentMessage` / generic binary-file messages | Generic file APIs are not an established template-specific caller-authorized contract; `GetFileContentMessage` is explicitly obsolete and restricted to a few paths. No file request, privileged filesystem read, alternate credential, or permission workaround was attempted. |
+
+The documentation itself needs clarification: the [editor guide][editor]
+shows distinct **MON** and **INCLUDED** controls, and the [group guide][groups]
+defines three states. The [web-service parameter reference][alarm-fields],
+however, describes its single `Monitored` Boolean as inclusion/exclusion.
+That does not supply an authoritative mapping for two independent states.
+No Boolean interpretation, omitted-row inference, positional `QueryData`
+decoding, threshold sentinel, or raw-string encoding was invented.
+
+### Necessary authorized host acceptance check
+
+This check has **not** been performed and does not authorize deployment or
+live writes. It requires a separately authorized operator or test session
+with access to a compatible existing system and the intended caller identity.
+
+1. Record the exact DataMiner/Web/GQI builds and use existing, assigned
+   templates with known included+monitored, included+not-monitored, and
+   excluded configured rows, including repeated/filtered rows and a group.
+   Do not create or edit templates as part of this read-only check.
+2. Establish independent saved-definition ground truth through the supported
+   template editor/export workflow. Disable search and monitored-only
+   filtering. Distinguish persisted configured rows from protocol-derived
+   default rows merely displayed by the editor. A [parameter CSV export][csv]
+   includes only visible rows and is not sufficient if display filters or
+   default-row provenance are unknown.
+3. Under the same non-elevated caller, resolve the exact element and issue
+   `GetAlarmTemplateMessage(AsOneObject=true)` for the assignment and each
+   original member template. Capture all original ordinals, IDs, filters,
+   conditions, raw thresholds, and flags; compare with saved definitions
+   without collapsing repeated rows.
+4. Check whether any persisted excluded row is missing, and whether the
+   included-but-unmonitored and excluded cases have distinct, documented
+   representations. Confirm explicit authorization failure for a caller
+   lacking element/template access, without granting extra privileges.
+5. If rows are missing or state mapping is ambiguous, obtain a supported,
+   permission-scoped retrieval contract and encoding specification from
+   Skyline before implementing a richer source. A sample-specific pattern,
+   guessed sentinel, or additional mocked test cannot resolve this gate.
+
+A successful comparison would establish completeness only for the tested
+configuration/build. It would not independently document a general inclusion
+encoding, prove other releases, authorize PTP integration, or establish
+effective alarm coverage.
+
 ## Verification boundary
 
 Local tests cover complete rule arrays and raw thresholds, duplicate/filtered/
@@ -302,3 +375,6 @@ performed or authorized.
 [conditions]: https://docs.dataminer.services/dataminer/Operator_guide/Protocols_and_templates/Alarm_templates/Configuring_alarm_templates/Using_conditions_in_an_alarm_template.html
 [trends]: https://docs.dataminer.services/dataminer/Operator_guide/Protocols_and_templates/Trend_templates/Configuring_trend_templates.html
 [alarm-fields]: https://docs.dataminer.services/develop/webservices/WS_v1/WS_CustomDataTypes_v1/DMAAlarmTemplateParameter.html
+[helper-source]: https://github.com/SkylineCommunications/dataminer-docs/blob/0995299b1a4ae8657876a0639e578d012d41ff2c/src/DataMiner/SLNetTypes/AlarmTemplateHelper/AlarmTemplateHelper.cs
+[editor]: https://docs.dataminer.services/dataminer/Operator_guide/Protocols_and_templates/Alarm_templates/Configuring_alarm_templates/About_the_alarm_template_editor.html
+[csv]: https://docs.dataminer.services/dataminer/Operator_guide/Protocols_and_templates/Alarm_templates/Exporting_alarm_template_parameter_data.html
