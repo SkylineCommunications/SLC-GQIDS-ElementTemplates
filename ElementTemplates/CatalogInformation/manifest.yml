@@ -1,0 +1,12 @@
+type: Ad Hoc Data Source
+id: b390f369-efe0-420f-9276-363c9468c916
+title: Element Template Configuration
+short_description: Read-only inspection of element alarm and trend template rules.
+source_code_url: https://github.com/SkylineCommunications/SLC-GQIDS-ElementTemplates
+documentation_url: https://github.com/SkylineCommunications/SLC-GQIDS-ElementTemplates/blob/main/README.md
+owners:
+  - name: Skyline Communications
+tags:
+  - Configuration Review
+  - Alarm Threshold
+  - Trend Configuration

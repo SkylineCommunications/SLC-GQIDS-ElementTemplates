@@ -1,380 +1,56 @@
-# Element template configuration sources
+# Element Template Configuration
 
-Read-only, connector-independent GQI sources and DataMiner Assistant custom
-data tools for the alarm and trend templates assigned to one exact element.
-No PTP dependency, vendor parameter map, current-alarm filter, or subscription
-callback is required.
+Read-only GQI data sources for the alarm and trend templates assigned to an
+element, with [DataMiner Assistant tools](Assistant). Connector-independent.
 
-**Status:** implementation baseline with local build/contract evidence, not
-runtime-accepted release software. Excluded-row completeness and independent
-three-state alarm inclusion remain explicit API/host verification gates below.
+## Input and output
 
-## Sources and tools
+Both sources require positive `Int32` arguments: **dmaID** and **elementID**.
 
-Both sources belong to automation script **ElementTemplates**, compiled
-library **ElementTemplates**. These identities are compatibility contracts.
-
-| GQI display name | Full class name | Assistant tool |
-| --- | --- | --- |
-| Element alarm template configuration | `ElementTemplates.AlarmTemplateSource` | `element-alarm-template-configuration` |
-| Element trend template configuration | `ElementTemplates.TrendTemplateSource` | `element-trend-template-configuration` |
-
-The interface is `Skyline.DataMiner.Core.GQI.Extensions.IGQIDataSource`.
-The files in `Assistant\` are actual Markdown/YAML custom data-tool definitions,
-not prompts or native-resource placeholders.
-
-Both sources require **dmaID** and **elementID**, positive `Int32` arguments.
-For example, `dmaID=12`, `elementID=34` identifies exactly `12/34`.
-Names, view IDs, and fallback elements are not accepted.
-
-## Supported target and API evidence
-
-The official `Skyline.DataMiner.VisualStudioTemplates` **2.8.15**
-`dataminer-gqi-ad-hoc-data-source-project` template was scaffolded and built
-before implementation. Its legacy references were replaced with the modern
-Core API. The project retains `DataMinerType=AdHocDataSource`, `net48`, and
-the generated library XML with `preCompile=true` and a dot-free library name.
-The platform is explicitly **x64**; the template's implicit platform must
-not be relied on for the GQI DxM.
-
-Versions selected and locally compiled:
-
-- `Skyline.DataMiner.Sdk` **2.6.1**, pinned in `global.json`.
-- `Skyline.DataMiner.Core.GQI.Extensions` **1.6.0**.
-- `Skyline.DataMiner.Files.SLNetTypes` **10.6.10.1**.
-- `Newtonsoft.Json` **13.0.3**.
-
-The current published [Core API compatibility table][core-package] specifies
-DataMiner **10.6.12 [CU0]**, **10.6.0 [CU9]**, or **10.5.0 [CU21]**, or the
-corresponding DataMiner Web version, for Core API 1.6.0. This package
-conservatively declares **10.6.12.0** as its minimum DataMiner version.
-The other branches/web-only combinations are not enabled by this manifest
-or tested here. **The GQI DxM must be enabled.** No legacy SLAnalyticsTypes
-implementation is provided.
-
-The latest published Core API package/table was used, not an inferred
-capability level from an older test host. Package availability does not
-prove the target Agent runs a compatible release.
-
-Typed members verified against the selected NuGet packages:
-
-| Operation | Request/response |
+| Data source | Output |
 | --- | --- |
-| Caller connection | Injected `IGQIDMSInterface.GetConnection()`, verified against `IGQIUser.Username` |
-| Caller permissions | `GetInfoMessage(InfoType.ClientSecurity)` / `ClientSecurityChangeEventMessage`; `ClientSecurity.IsAllowedOnElement` and `CheckPermissions` |
-| Exact element and assignments | `GetElementByIDMessage(dmaID, elementID)` / `ElementInfoEventMessage`; `ProtocolTemplate`, `Trending`, `Protocol`, `ProtocolVersion` |
-| Connector version/metadata | `GetProtocolMessage` / `GetProtocolInfoResponseMessage`; `AllParameters`, parameter `Name` and `Units` |
-| Complete alarm response | `GetAlarmTemplateMessage` with `AsOneObject=true` / `AlarmTemplateEventMessage.TemplateParams`, `Conditions`, `Schedule`, `GroupEntries` |
-| Trend response | `GetTrendingTemplateInfoMessage` / `GetTrendingTemplateInfoResponseMessage.Parameters` (`ParamTrendingInfo`) |
+| Element alarm template configuration | Raw thresholds, parameter IDs, filters, conditions, schedules, and ordered alarm group members |
+| Element trend template configuration | Parameter/row rules with separate real-time and average trending flags |
 
-The official `AlarmTemplateHelper` uses the same one-object alarm retrieval
-contract, but its selected-row helpers are deliberately **not** used.
-Selection/deduplication would not satisfy this source's contract.
-SLNet messages are [version-sensitive][dms-api]. Strongly typed compilation
-proves the package surface, not server behavior on arbitrary releases.
-Documentation was checked on **2026-10-23** against the official documentation
-repository at revision
-[`0995299b1a4ae8657876a0639e578d012d41ff2c`](https://github.com/SkylineCommunications/dataminer-docs/tree/0995299b1a4ae8657876a0639e578d012d41ff2c).
+Repeated, filtered, and disabled rules are retained. Results include element,
+connector, and template provenance, raw rule JSON, and explicit missing/empty
+assignment states. Reads use the caller's permissions; failures are not empty
+results. Both sources use normal GQI fetch/paging.
 
-Official references:
+**Limitation:** effective coverage is not evaluated. The alarm API exposes no
+separate include/exclude field, and excluded-row completeness is not verified.
+The full all-configured-rows requirement remains blocked pending supported API
+clarification and read-only host comparison ([API investigation](https://github.com/SkylineCommunications/SLC-GQIDS-ElementTemplates/blob/df322046586fa036921e341561b9bb7856b7e02e/README.md)).
+No live GQI/Assistant acceptance
+or deployment has been performed.
 
-- [Core versus legacy GQI API][core-api] and [ad hoc discovery identity][creation].
-- [Constructor-injected DMS access][dms-interface] and [user context][user-context].
-- [Assistant custom data-tool files][assistant-docs].
-- [Alarm groups, precedence, and three UI inclusion states][groups].
-- [Conditions and ordered rules][conditions].
-- [Trend filters, repeated rows, and ordering][trends].
-- [Raw alarm threshold fields][alarm-fields].
+## Build and use
 
-## Build and package
-
-Use Windows with the .NET SDK (verified locally with **10.0.401**) and .NET
-Framework 4.8 targeting/runtime support. Restore needs nuget.org access.
-No DataMiner installation, credentials, or manually copied DataMiner
-assemblies are needed for the local build.
+Requires Windows, .NET Framework 4.8, and a .NET SDK. The package targets
+**DataMiner 10.6.12.0 or later with the GQI DxM enabled** (Core GQI API 1.6.0).
 
 ```powershell
 dotnet build ElementTemplates.sln -c Release --warnaserror
-dotnet test tests\ElementTemplates.Tests\ElementTemplates.Tests.csproj -c Release --no-build --verbosity minimal
+dotnet test ElementTemplates.Tests\ElementTemplates.Tests.csproj -c Release --no-build
 ```
 
-The SDK generates:
+Install `ElementTemplates\bin\Release\net48\DataMinerBuild\ElementTemplates.1.0.0.dmapp`
+on a compatible system, then select either source under **Get custom data**.
+Copy `Assistant\*.md` to the Assistant host's
+`C:\ProgramData\Skyline Communications\DataMiner Assistant\Synced Documents\Context\Custom\Adhoc`.
+The tool files describe the full input and column contracts.
 
-```text
-src\ElementTemplates\bin\Release\net48\DataMinerBuild\ElementTemplates.1.0.0.dmapp
-```
+Script/library identity: `ElementTemplates`. Classes:
+`ElementTemplates.AlarmTemplateSource` and `ElementTemplates.TrendTemplateSource`.
+Keep these names stable for existing queries and tools.
 
-The package contains the library script and its NuGet dependency references,
-the Core GQI and JSON dependency files, and the SDK-generated default
-installer. It does not contain tests or a provisioning script. Installing it
-registers read-only source code. Querying it does not change templates,
-assignments, parameters, or device state. Package installation itself is an
-administrative change and is **not** performed by the tests.
+## Repository
 
-Assistant files are distributed separately in `Assistant\`; the `.dmapp`
-does not write the Assistant document store. This avoids a custom privileged
-installer or hard-coded Assistant service paths.
-No Catalog upload or deployment is required to build.
+- `ElementTemplates\`: SDK GQI project, Catalog information, and publish profile.
+- `ElementTemplates.Tests\`: mapping, paging, permissions, and tool-contract tests.
+- `Assistant\`: custom data-tool registrations.
 
-## Setup on a compatible system
-
-1. Have an authorized administrator install the generated `.dmapp`, or use
-   Visual Studio with DIS for development publishing. Do not manually copy
-   dependency assemblies into a running Agent.
-2. In a GQI query, select **Get custom data** (or **Get ad hoc data**) and the
-   required source display name. Supply `dmaID` and `elementID`.
-3. Verify discovery, initial fetch, multiple pages, and permissions using a
-   known element in the actual target system.
-4. Copy both `Assistant\*.md` files to the documented Assistant host folder:
-   `C:\ProgramData\Skyline Communications\DataMiner Assistant\Synced Documents\Context\Custom\Adhoc`.
-5. Verify the tools appear in the Assistant app and grant the intended agent
-   access through normal Assistant configuration.
-6. Run each tool for the same element and compare its complete result with
-   the template editor, including group members, repeated/disabled rules,
-   filters, conditions, and schedules.
-
-The Assistant version must support the documented custom ad hoc data-tool
-format and deployed Core GQI identity. No Assistant version/build or live
-target was supplied or exercised. Registration acceptance remains a host
-check, not an implication of the YAML tests.
-
-## Caller permissions and failure behavior
-
-All reads use the injected caller-scoped DMS connection. Its
-`UserDomainName` must match `IGQIUser.Username` case-insensitively;
-an unverifiable/mismatched identity fails closed. The caller's security key
-is requested through that connection, never supplied as a credential or
-replaced by a process-wide/elevated connection. The server's empty-key
-semantics are left to the official `ClientSecurity` implementation.
-
-The source explicitly checks element visibility and request-type permissions
-before reading the exact element, connector, and templates. The caller needs
-visibility of the element, permission to run the GQI source, and access to
-the corresponding connector/template reads. No broad administrative role or
-template-edit permission is requested. Server authorization errors propagate.
-Role names and the exact permission combination need target verification.
-
-Template data can contain rules for parameters the caller cannot read as
-live values. This tool inspects the permitted **template definition**, not
-parameter values, and does not claim that parameter-value access was granted.
-Do not grant these tools to users who should not inspect their templates.
-No element connection strings, credentials, or complete element metadata
-are serialized.
-
-| Situation | Result |
-| --- | --- |
-| Null/empty assignment on the resolved element | One `Assignment` record with `Status=NoAssignment` |
-| Assigned, inspectable definition with no rules/members | One `Template` record with `Status=EmptyTemplate` |
-| Normal template/rule/member | `Status=Configured`, never a health verdict |
-| Rules returned on a group object itself | `GroupProjectionRule`, `Status=UnresolvedProjection` |
-| Invalid IDs | Argument exception |
-| Caller mismatch or denied element | Authorization exception, no template reads |
-| Element missing, deleted, or different identity | Query fails; never represented as `NoAssignment` |
-| Unexpected/incomplete response, unknown type, template identity mismatch, cyclic/overdeep group | `NotSupportedException` |
-| Timeout, server authorization error, other retrieval failure | Original exception propagates |
-
-Inspection exceptions are logged through the GQI logger and rethrown.
-No exception becomes an empty page or healthy status. Once a fetch fails,
-subsequent page requests fail until a new fetch is prepared. Member retrieval
-failures fail the whole initial fetch rather than returning partial rows.
-
-## Output contract
-
-Column names, types, and order are checked against both Assistant files.
-The alarm source has **32** columns; the trend source has **20**.
-Metadata records have null parameter/rule-specific cells; null and empty
-strings are not interchangeable.
-
-### Common columns
-
-| Column | Type | Meaning |
-| --- | --- | --- |
-| RecordKind | String | `Assignment`, `Template`, `GroupEntry`, `AlarmRule`, `GroupProjectionRule`, or `TrendRule`, as applicable |
-| Status | String | Explicit inspection state described above |
-| dmaID / elementID | Int32 | Exact requested and resolved identity |
-| ElementName | String | Element name, for display only |
-| Protocol | String | Element connector name |
-| ElementProtocolVersion | String | Version configured on the element, possibly `Production` |
-| TemplateProtocolVersion | String | Version resolved by the connector API and used for template requests |
-| AssignedTemplate | String | Original element assignment, not replaced by a child name |
-| TemplateName | String | Definition supplying this record |
-| TemplatePath | String | `root`, `root/0`, `root/0/1`, etc.; preserves group occurrence/order |
-| RowOrdinal | Int32 | Zero-based rule/member position, null on headers |
-| ParameterID | Int32 | Actual configured ID, retained even without metadata |
-| ParameterName / Units | String | Connector metadata when available, not guessed or dynamically evaluated |
-| Filter | String | Raw rule filter/instance expression, including empty/null |
-| EffectiveCoverage | String | Always `NotEvaluated` |
-| RawConfiguration | String | JSON of the complete API rule, header, or group member |
-
-Keys include element IDs, template kind, occurrence path, record kind, and
-ordinal. Repeated rules and group members remain distinct even when their
-parameter IDs and filters are identical.
-
-### Alarm-only columns
-
-`Monitored` is the unmodified API Boolean. `ThresholdType` is raw API `Type`;
-`DisabledIf` is the raw condition reference/expression. The remaining columns
-are strings copied without conversion:
-`CH`, `MaH`, `MiH`, `WaH`, `Normal`, `WaL`, `MiL`, `MaL`, `CL`, `Info`, and
-`Hysteresis`.
-
-Zero, negative values, discrete lists, baseline/relative encodings, and
-empty/null thresholds are preserved. No parsing, unit conversion, sentinel
-interpretation, or threshold synthesis is performed. Full per-severity
-hysteresis, baseline, anomaly configuration, auto-clear, and other returned
-fields remain in each rule's `RawConfiguration`.
-
-Template header JSON preserves description, type, interpretation version,
-conditions, schedule, schedule enablement, and ordered group members.
-`GroupEntry` JSON includes `Name`, `IsEnabled`, and `IsScheduled`.
-Every member is inspected, including disabled and scheduled members.
-Nested occurrences retain their path. Cycles and nesting beyond 128 fail
-explicitly instead of returning truncated success.
-
-### Trend-only columns
-
-`RealTimeTrended` and `AverageTrended` are independent Booleans on each
-`TrendRule`. Both false is a valid retained rule.
-Full rule JSON also preserves central-database flags and nullable anomaly,
-proactive, and trend-icon settings. Duplicate IDs, filters, and order are
-preserved without consulting current values/history.
-
-## Configured rows are not effective coverage
-
-The source returns **every row supplied by the complete template API
-collections**, without deduplication, monitored-only filtering, or reliance
-on active alarms/current values. It does not synthesize rows for connector
-parameters absent from the template response.
-
-The selected alarm API exposes `Monitored` but **no independent include/exclude
-field**. It cannot unambiguously reconstruct all three UI states
-(included+monitored, included+not monitored, excluded) from that flag alone.
-Headers explicitly contain
-`InclusionState="NotSeparatelyExposedByApi"`; raw flags/encodings are retained
-without invented semantics. Verification that a server returns all configured
-excluded rows, and a richer contract for any excluded rows it omits, remain
-**release gates**. Do not claim complete UI-state fidelity from mocked tests.
-
-Groups are traversed, not flattened into a coverage verdict. Earlier members
-override later members, but conditions and schedules affect which rules apply.
-Rules returned directly on a group may be a consolidated projection: they
-remain `GroupProjectionRule` records, distinct from member `AlarmRule` records.
-No precedence resolution is claimed.
-
-Other unresolved aspects include live condition truth, schedule activation
-and time zones, table display-key versus primary-key matching, dynamic
-baselines/units, and whether the device reports a parameter. Explicit groups
-are supported; implicit inheritance or server-side transformations not
-represented by this API are not resolved. Reads form a per-fetch snapshot,
-**not an atomic server transaction**. Concurrent assignment/template edits can
-affect different reads; refresh after edits.
-
-A domain agent can separately suppress findings for parameters its device
-does not report, but this source never hides disabled, excluded-as-returned,
-or unreported rules.
-
-### Focused offline fidelity investigation
-
-**Outcome, 2026-10-23:** no supported richer, caller-context contract was
-verified in the inspected APIs. The original **all configured alarm rows plus
-separate inclusion/monitoring states** requirement is still **unfulfilled**.
-Returning every row in an API collection is not proof that the server supplied
-every configured row. No runtime implementation or source identity was
-changed to disguise this gap.
-
-The investigation checked the actual public definitions/implementation in
-`Skyline.DataMiner.Files.SLNetTypes` **10.6.10.1**. The inspected NuGet archive's
-SHA-256 is
-`74D2DC6DB409F95E87B06D2B72CC80185F66D23CD8076ECCEED78B91C150045F`.
-It also checked the official DataMinerSystem library's default branch at
-revision
-[`8452c798968b9b50a1c17f0c49241645223b795a`](https://github.com/SkylineCommunications/Skyline.DataMiner.Core.DataMinerSystem/tree/8452c798968b9b50a1c17f0c49241645223b795a)
-and the authoritative documentation linked below. This is a bounded finding
-about these inspected contracts, not a claim that no other Skyline API exists.
-
-| Inspected contract | Verified result |
-| --- | --- |
-| `GetAlarmTemplateMessage` | Selects connector, version, and template; `AsOneObject` changes response shape. No `IncludeExcluded`, separate inclusion selection, or raw-definition option exists on this request. No completeness guarantee was found. |
-| `AlarmTemplateEventMessage` / `GetAlarmTemplateResponseMessage` | Header contains group members/conditions/schedules; rows expose one `Monitored` Boolean plus threshold/type/condition encodings. No separate `Included`/`Excluded` member exists. Changing response shape does not document a richer inclusion contract. |
-| `GetAvailableAlarmTemplatesMessage` | `IncludeGroups` and `IncludeTemplates` select template kinds, not excluded parameter rows. Its response contains template metadata, not a richer rule model. |
-| `AlarmTemplateHelper` / `AlarmTemplateRow` | Uses the same one-object request and same row type. [Official helper documentation][helper-source] explicitly limits extraction/merge to Included rows. That restriction does not, by itself, prove whether the raw server request omits excluded rows. |
-| DataMinerSystem `IDmsTemplate`, `IDmsAlarmTemplate`, `IDmsStandaloneAlarmTemplate` | Exposes template identity, connector, description, and used-in-group metadata; not a richer parameter/inclusion collection. Its `DmsAlarmTemplate` retrieves the same one-object SLNet response. |
-| `GetElementProtocolResponseMessage.ExtractAlarmTemplate()` / `AlarmTemplateMap` | Represents element-applied alarm information, not the original unmerged template. The implementation clears some unmonitored filter collections and synthesizes some parameter information. It is not a completeness-preserving replacement. `AlarmTemplateDefinition` only has `Filter` and positional `QueryData`; no supported independent inclusion mapping was established. |
-| `DryRunAlarmTemplateMessage` / `DryRunAlarmTemplateParameterResponse` | Tests a supplied definition against a time range and returns severity/change counts. Not a definition retrieval or inclusion-state contract. No dry-run request was executed. |
-| `GetFileContentMessage` / generic binary-file messages | Generic file APIs are not an established template-specific caller-authorized contract; `GetFileContentMessage` is explicitly obsolete and restricted to a few paths. No file request, privileged filesystem read, alternate credential, or permission workaround was attempted. |
-
-The documentation itself needs clarification: the [editor guide][editor]
-shows distinct **MON** and **INCLUDED** controls, and the [group guide][groups]
-defines three states. The [web-service parameter reference][alarm-fields],
-however, describes its single `Monitored` Boolean as inclusion/exclusion.
-That does not supply an authoritative mapping for two independent states.
-No Boolean interpretation, omitted-row inference, positional `QueryData`
-decoding, threshold sentinel, or raw-string encoding was invented.
-
-### Necessary authorized host acceptance check
-
-This check has **not** been performed and does not authorize deployment or
-live writes. It requires a separately authorized operator or test session
-with access to a compatible existing system and the intended caller identity.
-
-1. Record the exact DataMiner/Web/GQI builds and use existing, assigned
-   templates with known included+monitored, included+not-monitored, and
-   excluded configured rows, including repeated/filtered rows and a group.
-   Do not create or edit templates as part of this read-only check.
-2. Establish independent saved-definition ground truth through the supported
-   template editor/export workflow. Disable search and monitored-only
-   filtering. Distinguish persisted configured rows from protocol-derived
-   default rows merely displayed by the editor. A [parameter CSV export][csv]
-   includes only visible rows and is not sufficient if display filters or
-   default-row provenance are unknown.
-3. Under the same non-elevated caller, resolve the exact element and issue
-   `GetAlarmTemplateMessage(AsOneObject=true)` for the assignment and each
-   original member template. Capture all original ordinals, IDs, filters,
-   conditions, raw thresholds, and flags; compare with saved definitions
-   without collapsing repeated rows.
-4. Check whether any persisted excluded row is missing, and whether the
-   included-but-unmonitored and excluded cases have distinct, documented
-   representations. Confirm explicit authorization failure for a caller
-   lacking element/template access, without granting extra privileges.
-5. If rows are missing or state mapping is ambiguous, obtain a supported,
-   permission-scoped retrieval contract and encoding specification from
-   Skyline before implementing a richer source. A sample-specific pattern,
-   guessed sentinel, or additional mocked test cannot resolve this gate.
-
-A successful comparison would establish completeness only for the tested
-configuration/build. It would not independently document a general inclusion
-encoding, prove other releases, authorize PTP integration, or establish
-effective alarm coverage.
-
-## Verification boundary
-
-Local tests cover complete rule arrays and raw thresholds, duplicate/filtered/
-unmonitored rules, ordered and disabled group members, conditions/schedule
-metadata, empty/missing assignments, authorization/retrieval failures,
-unsupported responses, cycles, paging/reset, and instance isolation.
-They also parse actual Assistant YAML/JSON and compare source identities,
-required inputs, and every column/type with compiled classes.
-The Release build completed with zero warnings/errors and all **15** local
-tests passed using the commands above.
-
-These are **mocked contract tests**, not a standalone GQI host. They do not
-prove discovery, constructor injection, SLNet server semantics, excluded-row
-completeness, real permission enforcement, group projection behavior, or
-Assistant registration/execution on a deployed system.
-No live deployment, template/device writes, or host acceptance checks were
-performed or authorized.
-
-[core-package]: https://www.nuget.org/packages/Skyline.DataMiner.Core.GQI.Extensions/1.6.0
-[core-api]: https://docs.dataminer.services/develop/devguide/GQI_Extensions/GQI_Extension_API.html
-[creation]: https://docs.dataminer.services/develop/devguide/GQI_Extensions/Ad_hoc_data/Ad_hoc_Creation.html
-[dms-api]: https://docs.dataminer.services/develop/devguide/GQI_Extensions/API_Reference/GQIDMS.html
-[dms-interface]: https://docs.dataminer.services/develop/devguide/GQI_Extensions/API_Reference/IGQIDMSInterface.html
-[user-context]: https://docs.dataminer.services/develop/devguide/GQI_Extensions/API_Reference/IGQIUser.html
-[assistant-docs]: https://docs.dataminer.services/dataminer/Functions/DataMiner_Intelligence/Intelligence_Assistant_custom_data_tools.html
-[groups]: https://docs.dataminer.services/dataminer/Operator_guide/Protocols_and_templates/Alarm_templates/Alarm_template_groups.html
-[conditions]: https://docs.dataminer.services/dataminer/Operator_guide/Protocols_and_templates/Alarm_templates/Configuring_alarm_templates/Using_conditions_in_an_alarm_template.html
-[trends]: https://docs.dataminer.services/dataminer/Operator_guide/Protocols_and_templates/Trend_templates/Configuring_trend_templates.html
-[alarm-fields]: https://docs.dataminer.services/develop/webservices/WS_v1/WS_CustomDataTypes_v1/DMAAlarmTemplateParameter.html
-[helper-source]: https://github.com/SkylineCommunications/dataminer-docs/blob/0995299b1a4ae8657876a0639e578d012d41ff2c/src/DataMiner/SLNetTypes/AlarmTemplateHelper/AlarmTemplateHelper.cs
-[editor]: https://docs.dataminer.services/dataminer/Operator_guide/Protocols_and_templates/Alarm_templates/Configuring_alarm_templates/About_the_alarm_template_editor.html
-[csv]: https://docs.dataminer.services/dataminer/Operator_guide/Protocols_and_templates/Alarm_templates/Exporting_alarm_template_parameter_data.html
+See [Catalog information](ElementTemplates/CatalogInformation/README.md) for the
+item overview and [Getting started](ElementTemplates/GettingStarted.md) for the
+template's publishing instructions. Publishing requires separate authorization;
+building does not publish or deploy.

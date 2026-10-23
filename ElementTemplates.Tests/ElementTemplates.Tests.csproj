@@ -23,9 +23,12 @@
 
   <ItemGroup>
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
-    <ProjectReference Include="..\..\src\ElementTemplates\ElementTemplates.csproj" />
-    <None Include="..\..\Assistant\*.md" Link="Assistant\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\..\src\ElementTemplates\ElementTemplates.xml" Link="Contract\ElementTemplates.xml" CopyToOutputDirectory="PreserveNewest" />
+    <ProjectReference Include="..\ElementTemplates\ElementTemplates.csproj" />
+    <None Include="..\Assistant\*.md" Link="Assistant\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\ElementTemplates\ElementTemplates.xml" Link="Contract\ElementTemplates.xml" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\ElementTemplates\CatalogInformation\README.md" Link="CatalogInformation\README.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\ElementTemplates\CatalogInformation\manifest.yml" Link="CatalogInformation\manifest.yml" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\ElementTemplates\Properties\PublishProfiles\UploadToDataMinerCatalog.pubxml" Link="Contract\UploadToDataMinerCatalog.pubxml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
