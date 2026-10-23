@@ -1,0 +1,32 @@
+﻿<Project Sdk="Skyline.DataMiner.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net48</TargetFramework>
+		<PlatformTarget>x64</PlatformTarget>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<DataMinerType>AdHocDataSource</DataMinerType>
+		<GenerateDataMinerPackage>True</GenerateDataMinerPackage>
+		<MinimumRequiredDmVersion>10.6.12.0</MinimumRequiredDmVersion>
+		<Version>1.0.0</Version>
+		<VersionComment>Initial Version</VersionComment>
+	</PropertyGroup>
+	<ItemGroup>
+		<Reference Include="System.Core" />
+		<PackageReference Include="Skyline.DataMiner.Core.GQI.Extensions" Version="1.6.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Skyline.DataMiner.Files.SLNetTypes" Version="10.6.10.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Skyline.DataMiner.CICD.CSharpAnalysis.Analyzer" Version="2.2.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Skyline.DataMiner.Utils.SecureCoding.Analyzers" Version="2.2.3">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+</Project>
