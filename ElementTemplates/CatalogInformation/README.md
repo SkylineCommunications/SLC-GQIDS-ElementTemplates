@@ -26,6 +26,9 @@ include/exclude state and excluded-row completeness are not verified; the
 full all-configured-rows requirement remains blocked. Runtime acceptance has
 not been performed.
 
+Both sources take one string input, `elementID`, in `dmaID/elementID` format
+(for example, `123/456`).
+
 The package installs two read-only GQI sources. Assistant registrations are
 provided separately in the source repository. See the repository README and
 tool files for setup, inputs, and output contracts.

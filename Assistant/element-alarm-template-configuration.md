@@ -3,14 +3,10 @@ name: "element-alarm-template-configuration"
 description: "Inspect all configured alarm template rules and thresholds for one exact element, including repeated and disabled rules and unmerged alarm group members. This does not calculate effective alarm coverage."
 dataSource: '{"DataSourceInterface":"Skyline.DataMiner.Core.GQI.Extensions.IGQIDataSource","ScriptName":"ElementTemplates","LibraryName":"ElementTemplates","TypeFullName":"ElementTemplates.AlarmTemplateSource","TypeName":"AlarmTemplateSource"}'
 inputArguments:
-  - name: "dmaID"
-    type: "Int32"
-    description: "Positive DataMiner ID of the exact element. Use together with elementID, never an element name."
-    example: "1"
   - name: "elementID"
-    type: "Int32"
-    description: "Positive element ID within dmaID."
-    example: "1"
+    type: "String"
+    description: "Exact element identifier in dmaID/elementID format, with two positive Int32 values. Never an element name."
+    example: "123/456"
 columns:
   - name: "RecordKind"
     type: "String"

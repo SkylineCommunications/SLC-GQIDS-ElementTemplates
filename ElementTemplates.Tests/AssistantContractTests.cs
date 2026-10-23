@@ -55,9 +55,13 @@ public sealed class AssistantContractTests
 
 			var arguments = ((IGQIInputArguments)source).GetInputArguments();
 			var toolArguments = ((YamlSequenceNode)document.Children[new YamlScalarNode("inputArguments")]).Children.Cast<YamlMappingNode>().ToArray();
+			Assert.HasCount(1, arguments);
+			Assert.AreEqual("elementID", arguments[0].Name);
 			CollectionAssert.AreEqual(arguments.Select(argument => argument.Name).ToArray(), toolArguments.Select(argument => Scalar(argument, "name")).ToArray());
-			Assert.IsTrue(arguments.All(argument => argument.IsRequired && argument is GQIIntArgument));
-			Assert.IsTrue(toolArguments.All(argument => Scalar(argument, "type") == "Int32" && int.Parse(Scalar(argument, "example")) > 0));
+			Assert.IsTrue(arguments[0].IsRequired && arguments[0] is GQIStringArgument);
+			Assert.AreEqual("String", Scalar(toolArguments[0], "type"));
+			new TemplateQuery(TemplateKind.Alarm, new TemplateReader(Mock.Of<IGQIDMSInterface>(), Mock.Of<IGQIUser>()), Mock.Of<IGQILogger>())
+				.SetTarget(Scalar(toolArguments[0], "example"));
 		}
 	}
 

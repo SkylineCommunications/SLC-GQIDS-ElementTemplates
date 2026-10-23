@@ -5,7 +5,9 @@ element, with [DataMiner Assistant tools](Assistant). Connector-independent.
 
 ## Input and output
 
-Both sources require positive `Int32` arguments: **dmaID** and **elementID**.
+Both sources require one string argument: **elementID**, in `dmaID/elementID`
+format (for example, `123/456`). Both components must be positive `Int32` values.
+Existing queries using two integer inputs must be updated to this single input.
 
 | Data source | Output |
 | --- | --- |

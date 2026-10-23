@@ -3,14 +3,10 @@ name: "element-trend-template-configuration"
 description: "Inspect every configured trend template parameter/row rule for one exact element, including duplicate, filtered, and disabled rules with separate real-time and average enablement. Not a live trend-coverage verdict."
 dataSource: '{"DataSourceInterface":"Skyline.DataMiner.Core.GQI.Extensions.IGQIDataSource","ScriptName":"ElementTemplates","LibraryName":"ElementTemplates","TypeFullName":"ElementTemplates.TrendTemplateSource","TypeName":"TrendTemplateSource"}'
 inputArguments:
-  - name: "dmaID"
-    type: "Int32"
-    description: "Positive DataMiner ID of the exact element. Use together with elementID."
-    example: "1"
   - name: "elementID"
-    type: "Int32"
-    description: "Positive element ID within dmaID."
-    example: "1"
+    type: "String"
+    description: "Exact element identifier in dmaID/elementID format, with two positive Int32 values. Never an element name."
+    example: "123/456"
 columns:
   - name: "RecordKind"
     type: "String"

@@ -2,6 +2,7 @@ namespace ElementTemplates
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Globalization;
 	using System.Linq;
 	using Skyline.DataMiner.Core.GQI.Extensions;
 
@@ -18,8 +19,7 @@ namespace ElementTemplates
 		private readonly TemplateKind kind;
 		private readonly TemplateReader reader;
 		private readonly IGQILogger logger;
-		private readonly GQIIntArgument dmaArgument = new GQIIntArgument("dmaID") { IsRequired = true };
-		private readonly GQIIntArgument elementArgument = new GQIIntArgument("elementID") { IsRequired = true };
+		private readonly GQIStringArgument elementArgument = new GQIStringArgument("elementID") { IsRequired = true };
 		private int dmaId;
 		private int elementId;
 		private GQIRow[] rows;
@@ -35,26 +35,33 @@ namespace ElementTemplates
 
 		internal GQIColumn[] GetColumns() => TemplateColumns.GetColumns(kind);
 
-		internal GQIArgument[] GetInputArguments() => new GQIArgument[] { dmaArgument, elementArgument };
+		internal GQIArgument[] GetInputArguments() => new GQIArgument[] { elementArgument };
 
 		internal OnArgumentsProcessedOutputArgs ProcessArguments(OnArgumentsProcessedInputArgs args)
 		{
-			SetTarget(args.GetArgumentValue(dmaArgument), args.GetArgumentValue(elementArgument));
+			SetTarget(args.GetArgumentValue(elementArgument));
 			return new OnArgumentsProcessedOutputArgs();
 		}
 
-		internal void SetTarget(int dataMinerId, int targetElementId)
+		internal void SetTarget(string elementIdentifier)
 		{
-			if (dataMinerId <= 0 || targetElementId <= 0)
-			{
-				throw new ArgumentOutOfRangeException(nameof(dataMinerId), "dmaID and elementID must be positive Int32 values.");
-			}
-
 			lock (sync)
 			{
+				dmaId = 0;
+				elementId = 0;
+				Reset();
+
+				var parts = elementIdentifier?.Split('/');
+				if (parts == null || parts.Length != 2
+					|| !int.TryParse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture, out var dataMinerId)
+					|| !int.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out var targetElementId)
+					|| dataMinerId <= 0 || targetElementId <= 0)
+				{
+					throw new ArgumentException("elementID must have the format dmaID/elementID, with two positive Int32 values (for example, 123/456).", nameof(elementIdentifier));
+				}
+
 				dmaId = dataMinerId;
 				elementId = targetElementId;
-				Reset();
 			}
 		}
 
@@ -73,7 +80,7 @@ namespace ElementTemplates
 			{
 				if (dmaId <= 0 || elementId <= 0)
 				{
-					throw new InvalidOperationException("Process dmaID and elementID before fetching.");
+					throw new InvalidOperationException("Process a valid elementID (dmaID/elementID) before fetching.");
 				}
 
 				if (failed)

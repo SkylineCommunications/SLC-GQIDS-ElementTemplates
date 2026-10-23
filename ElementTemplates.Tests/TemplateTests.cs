@@ -123,7 +123,7 @@ public sealed class TemplateTests
 		fixture.Alarms["alarms"].Type = AlarmTemplateType.Group;
 		fixture.Alarms["alarms"].GroupEntries = new[] { new AlarmTemplateGroupEntry { Name = "missing" } };
 		var query = fixture.Query(TemplateKind.Alarm);
-		query.SetTarget(12, 34);
+		query.SetTarget("12/34");
 		Assert.ThrowsExactly<KeyNotFoundException>(() => query.GetNextPage());
 		Assert.ThrowsExactly<InvalidOperationException>(() => query.GetNextPage());
 	}
@@ -179,7 +179,7 @@ public sealed class TemplateTests
 		var fixture = new Fixture();
 		fixture.Alarms["alarms"] = fixture.Alarm("alarms", Enumerable.Range(0, 205).Select(i => new GetAlarmTemplateResponseMessage { ID = 7, CH = i.ToString() }).ToArray());
 		var query = fixture.Query(TemplateKind.Alarm);
-		query.SetTarget(12, 34);
+		query.SetTarget("12/34");
 		var first = query.GetNextPage();
 		var second = query.GetNextPage();
 		var third = query.GetNextPage();
@@ -206,22 +206,97 @@ public sealed class TemplateTests
 		second.Element.ElementID = 78;
 		var one = first.Query(TemplateKind.Alarm);
 		var two = second.Query(TemplateKind.Alarm);
-		one.SetTarget(12, 34);
-		two.SetTarget(56, 78);
+		one.SetTarget("12/34");
+		two.SetTarget("56/78");
 		Assert.AreEqual(12, Value(one.GetNextPage().Rows[0], "dmaID"));
 		Assert.AreEqual(56, Value(two.GetNextPage().Rows[0], "dmaID"));
 		first.Element.ElementID = 35;
-		one.SetTarget(12, 35);
+		one.SetTarget("12/35");
 		Assert.AreEqual(35, Value(one.GetNextPage().Rows[0], "elementID"));
 	}
 
 	[TestMethod]
-	public void InvalidInputsAndUninitializedFetchFailExplicitly()
+	public void UninitializedFetchFailsExplicitly()
 	{
 		var query = new Fixture().Query(TemplateKind.Alarm);
-		Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => query.SetTarget(0, 1));
-		Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => query.SetTarget(1, -1));
 		Assert.ThrowsExactly<InvalidOperationException>(() => query.GetNextPage());
+	}
+
+	[TestMethod]
+	[DataRow("1/1", 1, 1)]
+	[DataRow("12/34", 12, 34)]
+	[DataRow("2147483647/2147483647", int.MaxValue, int.MaxValue)]
+	public void CombinedElementIdentifierSelectsTheExactElement(string target, int dmaId, int elementId)
+	{
+		foreach (var kind in new[] { TemplateKind.Alarm, TemplateKind.Trend })
+		{
+			var fixture = new Fixture();
+			fixture.Element.DataMinerID = dmaId;
+			fixture.Element.ElementID = elementId;
+			var query = fixture.Query(kind);
+			var argument = query.GetInputArguments().Single();
+			Assert.AreEqual("elementID", argument.Name);
+			Assert.IsInstanceOfType<GQIStringArgument>(argument);
+			Assert.IsTrue(argument.IsRequired);
+			query.SetTarget(target);
+			var row = query.GetNextPage().Rows.Single();
+			Assert.AreEqual(dmaId, Value(row, "dmaID", kind));
+			Assert.AreEqual(elementId, Value(row, "elementID", kind));
+		}
+	}
+
+	[TestMethod]
+	[DataRow(null)]
+	[DataRow("")]
+	[DataRow(" ")]
+	[DataRow("12")]
+	[DataRow("/34")]
+	[DataRow("12/")]
+	[DataRow("12/34/56")]
+	[DataRow("12\\34")]
+	[DataRow("dmaID/elementID")]
+	[DataRow("0/34")]
+	[DataRow("12/0")]
+	[DataRow("-12/34")]
+	[DataRow("12/-34")]
+	[DataRow("+12/34")]
+	[DataRow("12/+34")]
+	[DataRow(" 12/34")]
+	[DataRow("12/34 ")]
+	[DataRow("12 / 34")]
+	[DataRow("12.0/34")]
+	[DataRow("2147483648/34")]
+	[DataRow("12/2147483648")]
+	public void InvalidCombinedIdentifiersFailBeforeAnyRead(string? target)
+	{
+		foreach (var kind in new[] { TemplateKind.Alarm, TemplateKind.Trend })
+		{
+			var fixture = new Fixture();
+			var query = fixture.Query(kind);
+			var error = Assert.ThrowsExactly<ArgumentException>(() => query.SetTarget(target!));
+			StringAssert.Contains(error.Message, "dmaID/elementID");
+			Assert.ThrowsExactly<InvalidOperationException>(() => query.GetNextPage());
+			Assert.HasCount(0, fixture.Requests);
+		}
+	}
+
+	[TestMethod]
+	public void InvalidChangedIdentifierCannotReusePreviouslyFetchedRows()
+	{
+		foreach (var kind in new[] { TemplateKind.Alarm, TemplateKind.Trend })
+		{
+			var fixture = new Fixture();
+			var query = fixture.Query(kind);
+			query.SetTarget("12/34");
+			Assert.HasCount(1, query.GetNextPage().Rows);
+			var requestCount = fixture.Requests.Count;
+			Assert.ThrowsExactly<ArgumentException>(() => query.SetTarget("invalid"));
+			query.PrepareFetch();
+			Assert.ThrowsExactly<InvalidOperationException>(() => query.GetNextPage());
+			Assert.HasCount(requestCount, fixture.Requests);
+			query.SetTarget("12/34");
+			Assert.HasCount(1, query.GetNextPage().Rows);
+		}
 	}
 
 	[TestMethod]
@@ -247,7 +322,7 @@ public sealed class TemplateTests
 		var fixture = new Fixture();
 		fixture.Failure = new TimeoutException("test transport timeout");
 		var query = fixture.Query(TemplateKind.Alarm);
-		query.SetTarget(12, 34);
+		query.SetTarget("12/34");
 		Assert.ThrowsExactly<TimeoutException>(() => query.GetNextPage());
 		Assert.ThrowsExactly<InvalidOperationException>(() => query.GetNextPage());
 		fixture.Logger.Verify(logger => logger.Error(It.IsAny<Exception>(), It.IsAny<string>()), Times.Once);
