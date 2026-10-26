@@ -33,8 +33,8 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 	</ItemGroup>
-	<Target Name="StageAssistantTools" BeforeTargets="BeforeBuild">
-		<MakeDir Directories="SetupContent\Assistant" />
+	<Target Name="PreparePackageContent" BeforeTargets="BeforeBuild">
+		<MakeDir Directories="PackageContent\CompanionFiles;PackageContent\Dashboards;PackageContent\LowCodeApps;SetupContent\Assistant" />
 		<Copy SourceFiles="..\Assistant\element-alarm-template-configuration.md;..\Assistant\element-trend-template-configuration.md" DestinationFolder="SetupContent\Assistant" />
 	</Target>
 </Project>
