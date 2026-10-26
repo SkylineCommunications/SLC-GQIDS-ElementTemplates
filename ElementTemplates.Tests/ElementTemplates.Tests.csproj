@@ -11,12 +11,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <PackageReference Include="MSTest" Version="4.0.2" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
     <PackageReference Include="Skyline.DataMiner.Files.SLAnalyticsTypes" Version="10.5.0.1" />
     <PackageReference Include="Skyline.DataMiner.Files.SLNetTypes" Version="10.5.0.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="System.Collections.Immutable" Version="9.0.0" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.1" />
   </ItemGroup>
@@ -24,11 +26,13 @@
   <ItemGroup>
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
     <ProjectReference Include="..\ElementTemplates\ElementTemplates.csproj" />
+    <Compile Include="..\ElementTemplates.Package\AssistantToolInstaller.cs" Link="AssistantToolInstaller.cs" />
+    <PackageReference Include="Skyline.DataMiner.Utils.SecureCoding" Version="2.2.3" />
     <None Include="..\Assistant\*.md" Link="Assistant\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\ElementTemplates\ElementTemplates.xml" Link="Contract\ElementTemplates.xml" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\ElementTemplates\CatalogInformation\README.md" Link="CatalogInformation\README.md" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\ElementTemplates\CatalogInformation\manifest.yml" Link="CatalogInformation\manifest.yml" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\ElementTemplates\Properties\PublishProfiles\UploadToDataMinerCatalog.pubxml" Link="Contract\UploadToDataMinerCatalog.pubxml" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\ElementTemplates.Package\CatalogInformation\README.md" Link="CatalogInformation\README.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\ElementTemplates.Package\CatalogInformation\manifest.yml" Link="CatalogInformation\manifest.yml" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\ElementTemplates.Package\Properties\PublishProfiles\UploadToDataMinerCatalog.pubxml" Link="Contract\UploadToDataMinerCatalog.pubxml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

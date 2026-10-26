@@ -7,16 +7,15 @@
 
 	<PropertyGroup>
 		<DataMinerType>AdHocDataSource</DataMinerType>
-		<GenerateDataMinerPackage>True</GenerateDataMinerPackage>
+		<GenerateDataMinerPackage>False</GenerateDataMinerPackage>
 		<MinimumRequiredDmVersion>10.5.0</MinimumRequiredDmVersion>
-		<Version>2.0.3</Version>
-		<VersionComment>Preserve assigned connector version when reading templates</VersionComment>
-		<CatalogPublishKeyName>skyline:sdk:dataminertoken</CatalogPublishKeyName>
+		<Version>2.1.0</Version>
+		<VersionComment>Package sources with Assistant data tools</VersionComment>
 	</PropertyGroup>
 	<ItemGroup>
 		<Reference Include="System.Core" />
 		<PackageReference Include="Skyline.DataMiner.Files.SLAnalyticsTypes" Version="10.5.0.1" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="Skyline.DataMiner.Files.SLNetTypes" Version="10.5.0.1" />
 	</ItemGroup>
 

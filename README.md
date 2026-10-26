@@ -18,6 +18,9 @@ Repeated, filtered, and disabled rules are retained. Results include element,
 connector, and template provenance, raw rule JSON, and explicit missing/empty
 assignment states. Reads use the caller's permissions; failures are not empty
 results. Both sources use normal GQI fetch/paging.
+Alarm rows are configured in use only when `Monitored = true`. Trend rows are
+enabled when `RealTimeTrended = true` or `AverageTrended = true`; false/false rows
+are available but inactive. These flags do not prove effective coverage or history.
 
 **Limitation:** effective coverage is not evaluated. The alarm API exposes no
 separate include/exclude field, and excluded-row completeness is not verified.
@@ -42,11 +45,16 @@ dotnet build ElementTemplates.sln -c Release --warnaserror
 dotnet test ElementTemplates.Tests\ElementTemplates.Tests.csproj -c Release --no-build
 ```
 
-Install `ElementTemplates\bin\Release\net48\DataMinerBuild\ElementTemplates.2.0.3.dmapp`
+Install `ElementTemplates.Package\bin\Release\net48\DataMinerBuild\ElementTemplates.Package.2.1.0.dmapp`
 on a compatible system, then select either source under **Get custom data**.
-Copy `Assistant\*.md` to the Assistant host's
-`C:\ProgramData\Skyline Communications\DataMiner Assistant\Synced Documents\Context\Custom\Adhoc`.
-The tool files describe the full input and column contracts.
+Install/upgrade also places both Assistant tools in
+`%ProgramData%\Skyline Communications\DataMiner Assistant\Synced Documents\Context\Custom\Adhoc`,
+where Assistant discovers and syncs them automatically. A running Assistant
+supporting [custom data tools](https://github.com/SkylineCommunications/dataminer-docs/blob/main/dataminer/Functions/DataMiner_Intelligence/Intelligence_Assistant_custom_data_tools.md)
+is required. Only these two owned files are overwritten; unrelated tools remain.
+Installation failures are reported, not silently skipped. This package has not
+yet been deployed or exercised in Assistant. The SDK installer uses newer SLNet
+references; installer and source runtime compatibility on CU0 remain unverified.
 
 Script/library identity: `ElementTemplates`. Classes:
 `ElementTemplates.AlarmTemplateSource` and `ElementTemplates.TrendTemplateSource`.
@@ -54,11 +62,12 @@ Keep these names stable for existing queries and tools.
 
 ## Repository
 
-- `ElementTemplates\`: SDK GQI project, Catalog information, and publish profile.
+- `ElementTemplates\`: SDK GQI source project.
+- `ElementTemplates.Package\`: installer, Catalog information, and publish profile.
 - `ElementTemplates.Tests\`: mapping, paging, permissions, and tool-contract tests.
 - `Assistant\`: custom data-tool registrations.
 
-See [Catalog information](ElementTemplates/CatalogInformation/README.md) for the
-item overview and [Getting started](ElementTemplates/GettingStarted.md) for the
+See [Catalog information](ElementTemplates.Package/CatalogInformation/README.md) for the
+item overview and [Getting started](ElementTemplates.Package/GettingStarted.md) for the
 template's publishing instructions. Publishing requires separate authorization;
 building does not publish or deploy.

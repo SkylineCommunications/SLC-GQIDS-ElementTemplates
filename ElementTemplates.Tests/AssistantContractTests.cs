@@ -66,4 +66,20 @@ public sealed class AssistantContractTests
 	}
 
 	private static string Scalar(YamlMappingNode node, string name) => ((YamlScalarNode)node.Children[new YamlScalarNode(name)]).Value!;
+
+	[TestMethod]
+	public void ToolsDistinguishConfiguredEnablementFromEffectiveCoverage()
+	{
+		var tools = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assistant");
+		var alarm = File.ReadAllText(Path.Combine(tools, "element-alarm-template-configuration.md"));
+		StringAssert.Contains(alarm, "only `Monitored = true`");
+		StringAssert.Contains(alarm, "`Monitored = false` can be used but are currently not in use");
+		StringAssert.Contains(alarm, "Null flags on headers");
+		StringAssert.Contains(alarm, "NotSeparatelyExposedByApi");
+		var trend = File.ReadAllText(Path.Combine(tools, "element-trend-template-configuration.md"));
+		StringAssert.Contains(trend, "`RealTimeTrended = true` OR `AverageTrended = true`");
+		StringAssert.Contains(trend, "false/false rows can be trended but");
+		StringAssert.Contains(trend, "Null flags on headers");
+		StringAssert.Contains(trend, "that a device reports the parameter or that any history exists");
+	}
 }

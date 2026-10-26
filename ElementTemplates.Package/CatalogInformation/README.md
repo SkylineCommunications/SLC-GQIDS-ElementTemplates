@@ -12,6 +12,7 @@ to review configuration in GQI queries or through DataMiner Assistant tools.
 - Retain repeated rules and the provenance of ordered alarm group members.
 - Review real-time and average trending settings independently.
 - Distinguish missing assignments and empty definitions from retrieval failures.
+- Install the matching Assistant data tools automatically with the sources.
 
 ## Prerequisites
 
@@ -30,6 +31,13 @@ acceptance remain unverified.
 Both sources take one string input, `elementID`, in `dmaID/elementID` format
 (for example, `123/456`).
 
-The package installs two read-only GQI sources. Assistant registrations are
-provided separately in the source repository. See the repository README and
-tool files for setup, inputs, and output contracts.
+The package installs two read-only GQI sources and their Assistant registrations.
+Install and upgrade overwrite only these two owned tool files, retaining unrelated
+tools; Assistant discovers and synchronizes them automatically. Assistant itself
+is a separate prerequisite. No template assignments or device parameters change.
+
+Only alarm rules with `Monitored = true` are configured in use. Trend rules
+are enabled when `RealTimeTrended = true` or `AverageTrended = true`; false/false
+rows can be trended but are currently inactive. All returned rules remain visible.
+These row-level flags do not resolve effective coverage, filters, or history.
+See the repository README and tool files for inputs and output contracts.

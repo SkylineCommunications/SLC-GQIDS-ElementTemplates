@@ -1,6 +1,6 @@
 ---
 name: "element-trend-template-configuration"
-description: "Inspect every configured trend template parameter/row rule for one exact element, including duplicate, filtered, and disabled rules with separate real-time and average enablement. Not a live trend-coverage verdict."
+description: "Inspect trend template parameter/row rules for one exact element. RealTimeTrended=true or AverageTrended=true enables trending; false/false rows can be trended but currently are not. Retains duplicate and filtered rules. Not proof of available history."
 dataSource: '{"DataSourceInterface":"Skyline.DataMiner.Analytics.GenericInterface.IGQIDataSource","ScriptName":"ElementTemplates","LibraryName":"ElementTemplates","TypeFullName":"ElementTemplates.TrendTemplateSource","TypeName":"TrendTemplateSource"}'
 inputArguments:
   - name: "elementID"
@@ -28,7 +28,7 @@ columns:
     description: "Connector version configured on the element, possibly Production."
   - name: "TemplateProtocolVersion"
     type: "String"
-    description: "Resolved connector version used to retrieve the template."
+    description: "Assigned connector version or alias used to retrieve the template, including Production."
   - name: "AssignedTemplate"
     type: "String"
   - name: "TemplateName"
@@ -59,13 +59,19 @@ columns:
     description: "JSON containing the complete API trend rule, including central-database and anomaly flags, or template header."
   - name: "RealTimeTrended"
     type: "Boolean"
-    description: "Configured real-time enablement on this specific rule; null on headers."
+    description: "True enables real-time trending on this rule. Trending is enabled when this or AverageTrended is true; false/false is inactive. Null on headers."
   - name: "AverageTrended"
     type: "Boolean"
-    description: "Configured average enablement on this specific rule; null on headers."
+    description: "True enables average trending on this rule. Trending is enabled when this or RealTimeTrended is true; false/false is inactive. Null on headers."
 ---
 
 # Interpretation
+
+Only `TrendRule` rows with `RealTimeTrended = true` OR `AverageTrended = true`
+are configured for trending. Parameters on false/false rows can be trended but
+currently are not being trended by that rule. Null flags on headers are not
+false/false rules. Interpret each filtered or repeated rule separately rather
+than collapsing it to a parameter-wide verdict.
 
 Retrieve all pages. Retain every `TrendRule`, including false/false rules and
 duplicate parameter IDs or filters. Preserve `RowOrdinal`: row filters are
