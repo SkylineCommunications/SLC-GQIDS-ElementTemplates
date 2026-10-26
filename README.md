@@ -26,10 +26,11 @@ are available but inactive. These flags do not prove effective coverage or histo
 separate include/exclude field, and excluded-row completeness is not verified.
 The full all-configured-rows requirement remains blocked pending supported API
 clarification and read-only host comparison ([API investigation](https://github.com/SkylineCommunications/SLC-GQIDS-ElementTemplates/blob/df322046586fa036921e341561b9bb7856b7e02e/README.md)).
-Package 2.1.0, including Assistant registrations, was installed on
+Package 2.1.1, including Assistant registrations, was installed on
 `slc-h42-g06.skyline.local` (DataMiner 10.6.10). The alarm query for `665/33`
-was verified in Dashboards with 2.0.3; Assistant discovery/use, live trend
-queries, and CU0 runtime acceptance remain unverified.
+was verified in Dashboards with 2.0.3. Both Assistant editors were verified to
+prefill the example and retain descriptions with 2.1.1; Assistant query execution
+and CU0 runtime acceptance remain unverified.
 
 ## Build and use
 
@@ -46,16 +47,17 @@ dotnet build ElementTemplates.sln -c Release --warnaserror
 dotnet test ElementTemplates.Tests\ElementTemplates.Tests.csproj -c Release --no-build
 ```
 
-Install `ElementTemplates.Package\bin\Release\net48\DataMinerBuild\ElementTemplates.Package.2.1.0.dmapp`
+Install `ElementTemplates.Package\bin\Release\net48\DataMinerBuild\ElementTemplates.Package.2.1.1.dmapp`
 on a compatible system, then select either source under **Get custom data**.
 Install/upgrade also places both Assistant tools in
 `%ProgramData%\Skyline Communications\DataMiner Assistant\Synced Documents\Context\Custom\Adhoc`,
 where Assistant discovers and syncs them automatically. A running Assistant
 supporting [custom data tools](https://github.com/SkylineCommunications/dataminer-docs/blob/main/dataminer/Functions/DataMiner_Intelligence/Intelligence_Assistant_custom_data_tools.md)
 is required. Only these two owned files are overwritten; unrelated tools remain.
-Installation failures are reported, not silently skipped. The package has not
-yet been exercised in Assistant. The SDK installer uses newer SLNet
+Installation failures are reported, not silently skipped. The SDK installer uses newer SLNet
 references; installer and source runtime compatibility on CU0 remain unverified.
+The tools use lowercase Assistant type identifiers and prefill `123/456` as
+an example only; the actual GQI input remains required with no execution default.
 
 Script/library identity: `ElementTemplates`. Classes:
 `ElementTemplates.AlarmTemplateSource` and `ElementTemplates.TrendTemplateSource`.

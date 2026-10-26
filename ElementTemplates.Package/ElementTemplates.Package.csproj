@@ -9,8 +9,8 @@
 		<DataMinerType>Package</DataMinerType>
 		<GenerateDataMinerPackage>True</GenerateDataMinerPackage>
 		<MinimumRequiredDmVersion>10.5.0</MinimumRequiredDmVersion>
-		<Version>2.1.0</Version>
-		<VersionComment>Install GQI sources and Assistant data tools together</VersionComment>
+		<Version>2.1.1</Version>
+		<VersionComment>Match Assistant input and column type identifiers</VersionComment>
 		<!-- Do NOT fill in the Organization Token here. This points to either an Environment Variable skyline__sdk__dataminertoken holding the organization token or a Visual Studio User Secret holding the token. -->
 		<CatalogPublishKeyName>skyline:sdk:dataminertoken</CatalogPublishKeyName>
 		<CatalogDefaultDownloadKeyName>skyline:sdk:dataminertoken</CatalogDefaultDownloadKeyName>

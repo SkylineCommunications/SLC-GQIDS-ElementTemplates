@@ -49,7 +49,7 @@ public sealed class AssistantContractTests
 			CollectionAssert.AreEqual(columns.Select(column => column.Name).ToArray(), toolColumns.Select(column => Scalar(column, "name")).ToArray());
 			for (var i = 0; i < columns.Length; i++)
 			{
-				var expectedType = columns[i] is GQIIntColumn ? "Int32" : columns[i] is GQIBooleanColumn ? "Boolean" : "String";
+				var expectedType = columns[i] is GQIIntColumn ? "int" : columns[i] is GQIBooleanColumn ? "boolean" : "string";
 				Assert.AreEqual(expectedType, Scalar(toolColumns[i], "type"));
 			}
 
@@ -59,7 +59,9 @@ public sealed class AssistantContractTests
 			Assert.AreEqual("elementID", arguments[0].Name);
 			CollectionAssert.AreEqual(arguments.Select(argument => argument.Name).ToArray(), toolArguments.Select(argument => Scalar(argument, "name")).ToArray());
 			Assert.IsTrue(arguments[0].IsRequired && arguments[0] is GQIStringArgument);
-			Assert.AreEqual("String", Scalar(toolArguments[0], "type"));
+			Assert.AreEqual("string", Scalar(toolArguments[0], "type"));
+			Assert.AreEqual("123/456", Scalar(toolArguments[0], "example"));
+			Assert.IsNull(((GQIStringArgument)arguments[0]).DefaultValue, "An Assistant example must not become a GQI execution default.");
 			new TemplateQuery(TemplateKind.Alarm)
 				.SetTarget(Scalar(toolArguments[0], "example"));
 		}
