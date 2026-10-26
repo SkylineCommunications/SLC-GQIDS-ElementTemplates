@@ -23,13 +23,14 @@ results. Both sources use normal GQI fetch/paging.
 separate include/exclude field, and excluded-row completeness is not verified.
 The full all-configured-rows requirement remains blocked pending supported API
 clarification and read-only host comparison ([API investigation](https://github.com/SkylineCommunications/SLC-GQIDS-ElementTemplates/blob/df322046586fa036921e341561b9bb7856b7e02e/README.md)).
-No live GQI/Assistant acceptance
-or deployment has been performed.
+Package installation succeeded on `slc-h42-g06.skyline.local` (DataMiner 10.6.10).
+Live GQI/Assistant query acceptance has not been performed.
 
 ## Build and use
 
 Requires Windows, .NET Framework 4.8, and a .NET SDK. The package targets
-**DataMiner 10.6.12 or later with the GQI DxM enabled** (Core GQI API 1.6.0).
+**DataMiner 10.6.10 or later with the GQI DxM enabled** (Core GQI API 1.4.0,
+[compatibility table](https://www.nuget.org/packages/Skyline.DataMiner.Core.GQI.Extensions/1.4.0)).
 
 ```powershell
 dotnet build ElementTemplates.sln -c Release --warnaserror

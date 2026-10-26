@@ -8,14 +8,14 @@
 	<PropertyGroup>
 		<DataMinerType>AdHocDataSource</DataMinerType>
 		<GenerateDataMinerPackage>True</GenerateDataMinerPackage>
-		<MinimumRequiredDmVersion>10.6.12</MinimumRequiredDmVersion>
+		<MinimumRequiredDmVersion>10.6.10</MinimumRequiredDmVersion>
 		<Version>1.0.0</Version>
 		<VersionComment>Initial Version</VersionComment>
 		<CatalogPublishKeyName>skyline:sdk:dataminertoken</CatalogPublishKeyName>
 	</PropertyGroup>
 	<ItemGroup>
 		<Reference Include="System.Core" />
-		<PackageReference Include="Skyline.DataMiner.Core.GQI.Extensions" Version="1.6.0" />
+		<PackageReference Include="Skyline.DataMiner.Core.GQI.Extensions" Version="1.4.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="Skyline.DataMiner.Files.SLNetTypes" Version="10.6.10.1" />
 	</ItemGroup>

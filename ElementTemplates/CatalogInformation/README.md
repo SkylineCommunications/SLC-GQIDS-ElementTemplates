@@ -15,7 +15,7 @@ to review configuration in GQI queries or through DataMiner Assistant tools.
 
 ## Prerequisites
 
-- DataMiner 10.6.12 or later with the GQI DxM enabled.
+- DataMiner 10.6.10 or later with the GQI DxM enabled (Core GQI API 1.4.0).
 - Caller access to the element and its connector/template configuration.
 - A compatible DataMiner Assistant version for optional custom data tools.
 
