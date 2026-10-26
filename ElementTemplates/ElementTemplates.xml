@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<DMSScript options="272" xmlns="http://www.skyline.be/automation">
+	<Name>ElementTemplates</Name>
+	<Description>Read-only configured alarm and trend template rules for an exact element.</Description>
+	<Type>Automation</Type>
+	<Author>Skyline Communications</Author>
+	<CheckSets>FALSE</CheckSets>
+	<Folder></Folder>
+
+	<Protocols>
+	</Protocols>
+
+	<Memory>
+	</Memory>
+
+	<Parameters>
+	</Parameters>
+
+	<Script>
+		<Exe id="1" type="csharp">
+			<Value><![CDATA[[Project:ElementTemplates]]]></Value>
+			<!--<Param type="debug">true</Param>-->
+			<Param type="preCompile">true</Param>
+			<Param type="libraryName">ElementTemplates</Param>
+			<Message></Message>
+		</Exe>
+	</Script>
+</DMSScript>

@@ -1,0 +1,40 @@
+﻿<Project Sdk="Skyline.DataMiner.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net48</TargetFramework>
+		<PlatformTarget>x64</PlatformTarget>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<DataMinerType>Package</DataMinerType>
+		<GenerateDataMinerPackage>True</GenerateDataMinerPackage>
+		<MinimumRequiredDmVersion>10.5.0</MinimumRequiredDmVersion>
+		<Version>2.1.1</Version>
+		<VersionComment>Match Assistant input and column type identifiers</VersionComment>
+		<!-- Do NOT fill in the Organization Token here. This points to either an Environment Variable skyline__sdk__dataminertoken holding the organization token or a Visual Studio User Secret holding the token. -->
+		<CatalogPublishKeyName>skyline:sdk:dataminertoken</CatalogPublishKeyName>
+		<CatalogDefaultDownloadKeyName>skyline:sdk:dataminertoken</CatalogDefaultDownloadKeyName>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Skyline.DataMiner.Core.AppPackageInstaller" Version="4.2.0" />
+		<PackageReference Include="Skyline.DataMiner.Dev.Automation" Version="10.5.0.1" />
+		<PackageReference Include="Skyline.DataMiner.Utils.SecureCoding" Version="2.2.3" />
+		<PackageReference Include="System.Collections.Immutable" Version="9.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Skyline.DataMiner.CICD.CSharpAnalysis.Analyzer" Version="2.2.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Skyline.DataMiner.Utils.SecureCoding.Analyzers" Version="2.2.3">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+	<Target Name="StageAssistantTools" BeforeTargets="BeforeBuild">
+		<MakeDir Directories="SetupContent\Assistant" />
+		<Copy SourceFiles="..\Assistant\element-alarm-template-configuration.md;..\Assistant\element-trend-template-configuration.md" DestinationFolder="SetupContent\Assistant" />
+	</Target>
+</Project>
