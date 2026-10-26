@@ -29,7 +29,7 @@ or deployment has been performed.
 ## Build and use
 
 Requires Windows, .NET Framework 4.8, and a .NET SDK. The package targets
-**DataMiner 10.6.12.0 or later with the GQI DxM enabled** (Core GQI API 1.6.0).
+**DataMiner 10.6.12 or later with the GQI DxM enabled** (Core GQI API 1.6.0).
 
 ```powershell
 dotnet build ElementTemplates.sln -c Release --warnaserror
