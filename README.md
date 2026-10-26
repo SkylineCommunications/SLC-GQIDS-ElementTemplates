@@ -23,8 +23,8 @@ results. Both sources use normal GQI fetch/paging.
 separate include/exclude field, and excluded-row completeness is not verified.
 The full all-configured-rows requirement remains blocked pending supported API
 clarification and read-only host comparison ([API investigation](https://github.com/SkylineCommunications/SLC-GQIDS-ElementTemplates/blob/df322046586fa036921e341561b9bb7856b7e02e/README.md)).
-The previous Core GQI package was installed on `slc-h42-g06.skyline.local`.
-The legacy replacement has not been deployed or accepted in live queries.
+Legacy package 2.0.0 was installed on `slc-h42-g06.skyline.local` (DataMiner
+10.6.10). Live GQI/Assistant query acceptance has not been performed.
 
 ## Build and use
 
