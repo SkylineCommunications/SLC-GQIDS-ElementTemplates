@@ -24,9 +24,8 @@ to review configuration in GQI queries or through DataMiner Assistant tools.
 
 **Preview limitation:** effective coverage is not evaluated. Independent alarm
 include/exclude state and excluded-row completeness are not verified; the
-full all-configured-rows requirement remains blocked. One alarm query was
-verified in Dashboards on DataMiner 10.6.10. Trend, Assistant, and CU0 runtime
-acceptance remain unverified.
+full all-configured-rows requirement remains blocked. Assistant query execution
+and CU0 runtime compatibility remain unverified.
 
 Both sources take one string input, `elementID`, in `dmaID/elementID` format
 (for example, `123/456`).
