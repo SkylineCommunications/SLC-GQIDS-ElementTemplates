@@ -16,27 +16,6 @@ to review configuration in GQI queries or through DataMiner Assistant tools.
 
 ## Prerequisites
 
-- DataMiner 10.5.0 CU0 or later (legacy SLAnalyticsTypes GQI API).
+- DataMiner 10.5.0 CU0 or later.
 - Caller access to the element and its connector/template configuration.
 - A compatible DataMiner Assistant version for optional custom data tools.
-
-## Technical Reference
-
-**Preview limitation:** effective coverage is not evaluated. Independent alarm
-include/exclude state and excluded-row completeness are not verified; the
-full all-configured-rows requirement remains blocked. Assistant query execution
-and CU0 runtime compatibility remain unverified.
-
-Both sources take one string input, `elementID`, in `dmaID/elementID` format
-(for example, `123/456`).
-
-The package installs two read-only GQI sources and their Assistant registrations.
-Install and upgrade overwrite only these two owned tool files, retaining unrelated
-tools; Assistant discovers and synchronizes them automatically. Assistant itself
-is a separate prerequisite. No template assignments or device parameters change.
-
-Only alarm rules with `Monitored = true` are configured in use. Trend rules
-are enabled when `RealTimeTrended = true` or `AverageTrended = true`; false/false
-rows can be trended but are currently inactive. All returned rules remain visible.
-These row-level flags do not resolve effective coverage, filters, or history.
-See the repository README and tool files for inputs and output contracts.

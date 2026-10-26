@@ -17,7 +17,7 @@ Alarm rules are enabled when `Monitored = true`; trend rules when
 ## Build and install
 
 Requires Windows, .NET Framework 4.8, and a .NET SDK. Declared minimum:
-**DataMiner 10.5.0 CU0** (legacy GQI API); CU0 runtime compatibility is unverified.
+**DataMiner 10.5.0 CU0**; CU0 runtime compatibility is unverified.
 
 ```powershell
 dotnet build ElementTemplates.sln -c Release --warnaserror
