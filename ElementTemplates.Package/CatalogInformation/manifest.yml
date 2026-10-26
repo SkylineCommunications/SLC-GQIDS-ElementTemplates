@@ -6,7 +6,3 @@ source_code_url: https://github.com/SkylineCommunications/SLC-GQIDS-ElementTempl
 documentation_url: https://github.com/SkylineCommunications/SLC-GQIDS-ElementTemplates/blob/main/README.md
 owners:
   - name: Skyline Communications
-tags:
-  - Configuration Review
-  - Alarm Threshold
-  - Trend Configuration
