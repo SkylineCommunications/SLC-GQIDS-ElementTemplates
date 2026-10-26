@@ -26,9 +26,10 @@ are available but inactive. These flags do not prove effective coverage or histo
 separate include/exclude field, and excluded-row completeness is not verified.
 The full all-configured-rows requirement remains blocked pending supported API
 clarification and read-only host comparison ([API investigation](https://github.com/SkylineCommunications/SLC-GQIDS-ElementTemplates/blob/df322046586fa036921e341561b9bb7856b7e02e/README.md)).
-Legacy package 2.0.3 was installed on `slc-h42-g06.skyline.local` (DataMiner
-10.6.10). The alarm query for `665/33` was verified in Dashboards; Assistant,
-live trend queries, and CU0 runtime acceptance remain unverified.
+Package 2.1.0, including Assistant registrations, was installed on
+`slc-h42-g06.skyline.local` (DataMiner 10.6.10). The alarm query for `665/33`
+was verified in Dashboards with 2.0.3; Assistant discovery/use, live trend
+queries, and CU0 runtime acceptance remain unverified.
 
 ## Build and use
 
@@ -52,8 +53,8 @@ Install/upgrade also places both Assistant tools in
 where Assistant discovers and syncs them automatically. A running Assistant
 supporting [custom data tools](https://github.com/SkylineCommunications/dataminer-docs/blob/main/dataminer/Functions/DataMiner_Intelligence/Intelligence_Assistant_custom_data_tools.md)
 is required. Only these two owned files are overwritten; unrelated tools remain.
-Installation failures are reported, not silently skipped. This package has not
-yet been deployed or exercised in Assistant. The SDK installer uses newer SLNet
+Installation failures are reported, not silently skipped. The package has not
+yet been exercised in Assistant. The SDK installer uses newer SLNet
 references; installer and source runtime compatibility on CU0 remain unverified.
 
 Script/library identity: `ElementTemplates`. Classes:
