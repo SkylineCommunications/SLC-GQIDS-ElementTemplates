@@ -366,7 +366,42 @@ public sealed class TemplateTests
 	public void UnsupportedResponseIsDistinctFromMissingAssignment()
 	{
 		var fixture = new Fixture { UnexpectedResponse = true };
-		Assert.ThrowsExactly<NotSupportedException>(() => fixture.Read(TemplateKind.Alarm));
+		var error = Assert.ThrowsExactly<NotSupportedException>(() => fixture.Read(TemplateKind.Alarm));
+		StringAssert.Contains(error.Message, "0 response(s)");
+	}
+
+	[TestMethod]
+	[DataRow("Production", "1.0.0.0")]
+	[DataRow("2.0.0.0", "2.0.0.0")]
+	public void TemplateLookupPreservesAssignedVersionInsteadOfResolvedProtocolVersion(string assignedVersion, string resolvedVersion)
+	{
+		foreach (var kind in new[] { TemplateKind.Alarm, TemplateKind.Trend })
+		{
+			var fixture = new Fixture { ProtocolDefinitionVersion = resolvedVersion };
+			fixture.Element.ProtocolVersion = assignedVersion;
+			fixture.Alarms["alarms"] = fixture.Alarm("alarms");
+			fixture.Trend.Version = assignedVersion;
+			var rows = fixture.Read(kind);
+			Assert.AreEqual(assignedVersion, Value(rows[0], "ElementProtocolVersion", kind));
+			Assert.AreEqual(assignedVersion, Value(rows[0], "TemplateProtocolVersion", kind));
+			if (kind == TemplateKind.Alarm)
+			{
+				Assert.AreEqual(assignedVersion, fixture.Requests.OfType<GetAlarmTemplateMessage>().Single().Version);
+			}
+			else
+			{
+				Assert.AreEqual(assignedVersion, fixture.Requests.OfType<GetTrendingTemplateInfoMessage>().Single().Version);
+			}
+		}
+	}
+
+	[TestMethod]
+	public void WrongResponseTypeIsReportedRatherThanTreatedAsEmptyTemplate()
+	{
+		var reader = new TemplateReader(_ => new DMSMessage[] { new GetProtocolInfoResponseMessage() });
+		var error = Assert.ThrowsExactly<NotSupportedException>(() => reader.Read(TemplateKind.Alarm, 12, 34));
+		StringAssert.Contains(error.Message, "ElementInfoEventMessage");
+		StringAssert.Contains(error.Message, "GetProtocolInfoResponseMessage");
 	}
 
 	private static object Value(GQIRow row, string name, TemplateKind kind = TemplateKind.Alarm)
@@ -388,11 +423,12 @@ public sealed class TemplateTests
 
 		internal readonly GetTrendingTemplateInfoResponseMessage Trend = new()
 		{
-			Name = "trends", Protocol = "Generic", Version = "1.0.0.0", Parameters = Array.Empty<ParamTrendingInfo>(),
+			Name = "trends", Protocol = "Generic", Version = "Production", Parameters = Array.Empty<ParamTrendingInfo>(),
 		};
 
 		internal Exception? Failure;
 		internal bool UnexpectedResponse;
+		internal string ProtocolDefinitionVersion = "1.0.0.0";
 
 		internal Fixture()
 		{
@@ -411,7 +447,7 @@ public sealed class TemplateTests
 		}
 
 		internal AlarmTemplateEventMessage Alarm(string name, params GetAlarmTemplateResponseMessage[] rules) =>
-			new() { Name = name, Protocol = "Generic", Version = "1.0.0.0", TemplateParams = rules };
+			new() { Name = name, Protocol = "Generic", Version = Element.ProtocolVersion, TemplateParams = rules };
 
 		internal IReadOnlyList<GQIRow> Read(TemplateKind kind) => new TemplateReader(SendMessages).Read(kind, 12, 34);
 
@@ -426,12 +462,12 @@ public sealed class TemplateTests
 				case GetProtocolMessage:
 					return new GetProtocolInfoResponseMessage
 					{
-						Name = "Generic", Version = "1.0.0.0",
+						Name = "Generic", Version = ProtocolDefinitionVersion,
 						Parameters = new[] { new ParameterInfo { ID = 7, Name = "generic parameter", Units = "ns" } },
 					};
 				case GetAlarmTemplateMessage alarm:
 					Assert.IsTrue(alarm.AsOneObject);
-					Assert.AreEqual("1.0.0.0", alarm.Version);
+					Assert.AreEqual(Element.ProtocolVersion, alarm.Version);
 					return Alarms[alarm.Template];
 				case GetTrendingTemplateInfoMessage:
 					return Trend;

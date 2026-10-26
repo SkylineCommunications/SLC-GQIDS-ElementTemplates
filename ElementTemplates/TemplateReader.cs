@@ -137,7 +137,9 @@ namespace ElementTemplates
 			var response = sendMessages(new DMSMessage[] { request });
 			if (response == null || response.Length != 1 || !(response[0] is T typed))
 			{
-				throw new NotSupportedException("Expected one " + typeof(T).Name + " response for " + request.GetType().Name + ".");
+				var actual = response == null ? "null" : String.Join(", ", response.Select(message => message?.GetType().Name ?? "null"));
+				throw new NotSupportedException("Expected one " + typeof(T).Name + " response for " + request
+					+ "; received " + (response == null ? "null" : response.Length.ToString(CultureInfo.InvariantCulture)) + " response(s): " + actual + ".");
 			}
 
 			return typed;
@@ -163,11 +165,10 @@ namespace ElementTemplates
 
 		internal string Protocol => element.Protocol;
 
-		internal string TemplateVersion { get; private set; }
+		internal string TemplateVersion => element.ProtocolVersion;
 
 		internal void SetProtocol(GetProtocolInfoResponseMessage protocol)
 		{
-			TemplateVersion = protocol.Version;
 			var all = protocol.AllParameters ?? throw new NotSupportedException("Connector parameter metadata is unavailable.");
 			foreach (var parameter in all)
 			{

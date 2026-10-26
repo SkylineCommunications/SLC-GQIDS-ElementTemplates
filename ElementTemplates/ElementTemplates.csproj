@@ -9,8 +9,8 @@
 		<DataMinerType>AdHocDataSource</DataMinerType>
 		<GenerateDataMinerPackage>True</GenerateDataMinerPackage>
 		<MinimumRequiredDmVersion>10.5.0</MinimumRequiredDmVersion>
-		<Version>2.0.0</Version>
-		<VersionComment>Legacy GQI interface for DataMiner 10.5.0 CU0 and later</VersionComment>
+		<Version>2.0.3</Version>
+		<VersionComment>Preserve assigned connector version when reading templates</VersionComment>
 		<CatalogPublishKeyName>skyline:sdk:dataminertoken</CatalogPublishKeyName>
 	</PropertyGroup>
 	<ItemGroup>
