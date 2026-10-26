@@ -1,7 +1,7 @@
 ---
 name: "element-alarm-template-configuration"
 description: "Inspect all configured alarm template rules and thresholds for one exact element, including repeated and disabled rules and unmerged alarm group members. This does not calculate effective alarm coverage."
-dataSource: '{"DataSourceInterface":"Skyline.DataMiner.Core.GQI.Extensions.IGQIDataSource","ScriptName":"ElementTemplates","LibraryName":"ElementTemplates","TypeFullName":"ElementTemplates.AlarmTemplateSource","TypeName":"AlarmTemplateSource"}'
+dataSource: '{"DataSourceInterface":"Skyline.DataMiner.Analytics.GenericInterface.IGQIDataSource","ScriptName":"ElementTemplates","LibraryName":"ElementTemplates","TypeFullName":"ElementTemplates.AlarmTemplateSource","TypeName":"AlarmTemplateSource"}'
 inputArguments:
   - name: "elementID"
     type: "String"

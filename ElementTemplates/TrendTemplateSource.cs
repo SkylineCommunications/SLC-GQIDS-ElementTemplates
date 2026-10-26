@@ -1,17 +1,18 @@
 namespace ElementTemplates
 {
-	using Skyline.DataMiner.Core.GQI.Extensions;
+	using Skyline.DataMiner.Analytics.GenericInterface;
 
 	/// <summary>Returns all configured trend rules, including disabled and repeated rules.</summary>
 	[GQIMetaData(Name = "Element trend template configuration")]
-	public sealed class TrendTemplateSource : IGQIDataSource, IGQIInputArguments, IGQIOnPrepareFetch
+	public sealed class TrendTemplateSource : IGQIDataSource, IGQIInputArguments, IGQIOnInit, IGQIOnPrepareFetch
 	{
-		private readonly TemplateQuery query;
+		private readonly TemplateQuery query = new TemplateQuery(TemplateKind.Trend);
 
-		/// <summary>Creates a query in the current user's DMS context.</summary>
-		public TrendTemplateSource(IGQIDMSInterface dms, IGQIUser user, IGQILogger logger)
+		/// <inheritdoc/>
+		public OnInitOutputArgs OnInit(OnInitInputArgs args)
 		{
-			query = new TemplateQuery(TemplateKind.Trend, new TemplateReader(dms, user), logger);
+			query.Initialize(new TemplateReader(args.DMS.SendMessages), args.Logger);
+			return new OnInitOutputArgs();
 		}
 
 		/// <inheritdoc/>

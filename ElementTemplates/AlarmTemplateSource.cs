@@ -1,17 +1,18 @@
 namespace ElementTemplates
 {
-	using Skyline.DataMiner.Core.GQI.Extensions;
+	using Skyline.DataMiner.Analytics.GenericInterface;
 
 	/// <summary>Returns configured alarm rules and their unmerged group provenance.</summary>
 	[GQIMetaData(Name = "Element alarm template configuration")]
-	public sealed class AlarmTemplateSource : IGQIDataSource, IGQIInputArguments, IGQIOnPrepareFetch
+	public sealed class AlarmTemplateSource : IGQIDataSource, IGQIInputArguments, IGQIOnInit, IGQIOnPrepareFetch
 	{
-		private readonly TemplateQuery query;
+		private readonly TemplateQuery query = new TemplateQuery(TemplateKind.Alarm);
 
-		/// <summary>Creates a query in the current user's DMS context.</summary>
-		public AlarmTemplateSource(IGQIDMSInterface dms, IGQIUser user, IGQILogger logger)
+		/// <inheritdoc/>
+		public OnInitOutputArgs OnInit(OnInitInputArgs args)
 		{
-			query = new TemplateQuery(TemplateKind.Alarm, new TemplateReader(dms, user), logger);
+			query.Initialize(new TemplateReader(args.DMS.SendMessages), args.Logger);
+			return new OnInitOutputArgs();
 		}
 
 		/// <inheritdoc/>

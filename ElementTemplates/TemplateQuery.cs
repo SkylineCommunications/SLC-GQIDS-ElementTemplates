@@ -4,7 +4,7 @@ namespace ElementTemplates
 	using System.Collections.Generic;
 	using System.Globalization;
 	using System.Linq;
-	using Skyline.DataMiner.Core.GQI.Extensions;
+	using Skyline.DataMiner.Analytics.GenericInterface;
 
 	internal enum TemplateKind
 	{
@@ -17,8 +17,8 @@ namespace ElementTemplates
 		internal const int PageSize = 100;
 		private readonly object sync = new object();
 		private readonly TemplateKind kind;
-		private readonly TemplateReader reader;
-		private readonly IGQILogger logger;
+		private TemplateReader reader;
+		private IGQILogger logger;
 		private readonly GQIStringArgument elementArgument = new GQIStringArgument("elementID") { IsRequired = true };
 		private int dmaId;
 		private int elementId;
@@ -26,11 +26,24 @@ namespace ElementTemplates
 		private int position;
 		private bool failed;
 
-		internal TemplateQuery(TemplateKind kind, TemplateReader reader, IGQILogger logger)
+		internal TemplateQuery(TemplateKind kind)
 		{
 			this.kind = kind;
-			this.reader = reader ?? throw new ArgumentNullException(nameof(reader));
-			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+		}
+
+		internal TemplateQuery(TemplateKind kind, TemplateReader reader, IGQILogger logger) : this(kind)
+		{
+			Initialize(reader, logger);
+		}
+
+		internal void Initialize(TemplateReader templateReader, IGQILogger queryLogger)
+		{
+			lock (sync)
+			{
+				reader = templateReader ?? throw new ArgumentNullException(nameof(templateReader));
+				logger = queryLogger ?? throw new ArgumentNullException(nameof(queryLogger));
+				Reset();
+			}
 		}
 
 		internal GQIColumn[] GetColumns() => TemplateColumns.GetColumns(kind);
@@ -78,6 +91,11 @@ namespace ElementTemplates
 		{
 			lock (sync)
 			{
+				if (reader == null)
+				{
+					throw new InvalidOperationException("Initialize the GQI source before fetching.");
+				}
+
 				if (dmaId <= 0 || elementId <= 0)
 				{
 					throw new InvalidOperationException("Process a valid elementID (dmaID/elementID) before fetching.");

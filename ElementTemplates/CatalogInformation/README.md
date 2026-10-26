@@ -15,7 +15,7 @@ to review configuration in GQI queries or through DataMiner Assistant tools.
 
 ## Prerequisites
 
-- DataMiner 10.6.10 or later with the GQI DxM enabled (Core GQI API 1.4.0).
+- DataMiner 10.5.0 CU0 or later (legacy SLAnalyticsTypes GQI API).
 - Caller access to the element and its connector/template configuration.
 - A compatible DataMiner Assistant version for optional custom data tools.
 
@@ -24,7 +24,7 @@ to review configuration in GQI queries or through DataMiner Assistant tools.
 **Preview limitation:** effective coverage is not evaluated. Independent alarm
 include/exclude state and excluded-row completeness are not verified; the
 full all-configured-rows requirement remains blocked. Runtime acceptance has
-not been performed.
+not been performed, including on the 10.5.0 CU0 minimum.
 
 Both sources take one string input, `elementID`, in `dmaID/elementID` format
 (for example, `123/456`).

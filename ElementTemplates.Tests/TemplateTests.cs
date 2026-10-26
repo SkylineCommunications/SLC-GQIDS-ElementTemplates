@@ -6,8 +6,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json.Linq;
-using Skyline.DataMiner.Core.GQI.Extensions;
-using Skyline.DataMiner.Net;
+using Skyline.DataMiner.Analytics.GenericInterface;
 using Skyline.DataMiner.Net.Messages;
 
 [TestClass]
@@ -223,6 +222,26 @@ public sealed class TemplateTests
 	}
 
 	[TestMethod]
+	public void DiscoveryAndArgumentProcessingNeedNoDmsAndFetchRequiresInitialization()
+	{
+		foreach (var kind in new[] { TemplateKind.Alarm, TemplateKind.Trend })
+		{
+			var query = new TemplateQuery(kind);
+			Assert.IsNotEmpty(query.GetColumns());
+			Assert.HasCount(1, query.GetInputArguments());
+			query.SetTarget("12/34");
+			query.PrepareFetch();
+			Assert.ThrowsExactly<InvalidOperationException>(() => query.GetNextPage());
+			var fixture = new Fixture();
+			query.Initialize(new TemplateReader(fixture.SendMessages), fixture.Logger.Object);
+			Assert.HasCount(0, fixture.Requests);
+			Assert.HasCount(1, query.GetNextPage().Rows);
+			Assert.IsInstanceOfType<GetElementByIDMessage>(fixture.Requests[0]);
+			Assert.IsFalse(fixture.Requests.Any(request => request is GetInfoMessage));
+		}
+	}
+
+	[TestMethod]
 	[DataRow("1/1", 1, 1)]
 	[DataRow("12/34", 12, 34)]
 	[DataRow("2147483647/2147483647", int.MaxValue, int.MaxValue)]
@@ -300,17 +319,13 @@ public sealed class TemplateTests
 	}
 
 	[TestMethod]
-	public void CallerMismatchDenialAndUnexpectedElementFailBeforeTemplateReads()
+	public void ServerDenialAndUnexpectedElementFailBeforeTemplateReads()
 	{
-		var fixture = new Fixture();
-		fixture.Connection.SetupGet(connection => connection.UserDomainName).Returns("different-user");
+		var fixture = new Fixture { Failure = new UnauthorizedAccessException("Server denied the caller access.") };
 		Assert.ThrowsExactly<UnauthorizedAccessException>(() => fixture.Read(TemplateKind.Alarm));
-		Assert.HasCount(0, fixture.Requests);
-		fixture.Connection.SetupGet(connection => connection.UserDomainName).Returns("test-user");
-		fixture.SecurityKey = new ClientSecurity(Array.Empty<ClientSecurityElement>(), Array.Empty<PermissionFlags>(), Array.Empty<int>()).SecurityKey;
-		Assert.ThrowsExactly<UnauthorizedAccessException>(() => fixture.Read(TemplateKind.Alarm));
-		Assert.IsFalse(fixture.Requests.Any(request => request is GetElementByIDMessage));
-		fixture.SecurityKey = Array.Empty<uint>();
+		Assert.HasCount(1, fixture.Requests);
+		Assert.IsInstanceOfType<GetElementByIDMessage>(fixture.Requests[0]);
+		fixture.Failure = null;
 		fixture.Element.ElementID = 999;
 		Assert.ThrowsExactly<InvalidOperationException>(() => fixture.Read(TemplateKind.Alarm));
 		Assert.IsFalse(fixture.Requests.Any(request => request is GetAlarmTemplateMessage));
@@ -362,9 +377,6 @@ public sealed class TemplateTests
 
 	private sealed class Fixture
 	{
-		internal readonly Mock<IGQIDMSInterface> Dms = new(MockBehavior.Strict);
-		internal readonly Mock<IGQIUser> User = new(MockBehavior.Strict);
-		internal readonly Mock<IConnection> Connection = new(MockBehavior.Strict);
 		internal readonly Mock<IGQILogger> Logger = new();
 		internal readonly List<DMSMessage> Requests = new();
 		internal readonly Dictionary<string, AlarmTemplateEventMessage> Alarms = new();
@@ -379,47 +391,36 @@ public sealed class TemplateTests
 			Name = "trends", Protocol = "Generic", Version = "1.0.0.0", Parameters = Array.Empty<ParamTrendingInfo>(),
 		};
 
-		internal uint[] SecurityKey = Array.Empty<uint>();
 		internal Exception? Failure;
 		internal bool UnexpectedResponse;
 
 		internal Fixture()
 		{
-			Connection.SetupGet(connection => connection.UserDomainName).Returns("test-user");
-			User.SetupGet(user => user.Username).Returns("test-user");
-			Dms.Setup(dms => dms.GetConnection()).Returns(Connection.Object);
-			Dms.Setup(dms => dms.SendMessages(It.IsAny<DMSMessage[]>())).Returns((DMSMessage[] messages) =>
-			{
-				Requests.AddRange(messages);
-				if (Failure != null)
-				{
-					throw Failure;
-				}
-
-				if (UnexpectedResponse)
-				{
-					return Array.Empty<DMSMessage>();
-				}
-
-				return messages.Select(Respond).ToArray();
-			});
 			Alarms["alarms"] = Alarm("alarms");
+		}
+
+		internal DMSMessage[] SendMessages(DMSMessage[] messages)
+		{
+			Requests.AddRange(messages);
+			if (Failure != null)
+			{
+				throw Failure;
+			}
+
+			return UnexpectedResponse ? Array.Empty<DMSMessage>() : messages.Select(Respond).ToArray();
 		}
 
 		internal AlarmTemplateEventMessage Alarm(string name, params GetAlarmTemplateResponseMessage[] rules) =>
 			new() { Name = name, Protocol = "Generic", Version = "1.0.0.0", TemplateParams = rules };
 
-		internal IReadOnlyList<GQIRow> Read(TemplateKind kind) => new TemplateReader(Dms.Object, User.Object).Read(kind, 12, 34);
+		internal IReadOnlyList<GQIRow> Read(TemplateKind kind) => new TemplateReader(SendMessages).Read(kind, 12, 34);
 
-		internal TemplateQuery Query(TemplateKind kind) => new(kind, new TemplateReader(Dms.Object, User.Object), Logger.Object);
+		internal TemplateQuery Query(TemplateKind kind) => new(kind, new TemplateReader(SendMessages), Logger.Object);
 
 		private DMSMessage Respond(DMSMessage request)
 		{
 			switch (request)
 			{
-				case GetInfoMessage info:
-					Assert.AreEqual(InfoType.ClientSecurity, info.Type);
-					return new ClientSecurityChangeEventMessage { uia = SecurityKey };
 				case GetElementByIDMessage:
 					return Element;
 				case GetProtocolMessage:

@@ -6,45 +6,21 @@ namespace ElementTemplates
 	using System.IO;
 	using System.Linq;
 	using Newtonsoft.Json;
-	using Skyline.DataMiner.Core.GQI.Extensions;
-	using Skyline.DataMiner.Net;
+	using Skyline.DataMiner.Analytics.GenericInterface;
 	using Skyline.DataMiner.Net.Messages;
 
 	internal sealed class TemplateReader
 	{
-		private readonly IGQIDMSInterface dms;
-		private readonly IGQIUser user;
+		private readonly Func<DMSMessage[], DMSMessage[]> sendMessages;
 
-		internal TemplateReader(IGQIDMSInterface dms, IGQIUser user)
+		internal TemplateReader(Func<DMSMessage[], DMSMessage[]> sendMessages)
 		{
-			this.dms = dms ?? throw new ArgumentNullException(nameof(dms));
-			this.user = user ?? throw new ArgumentNullException(nameof(user));
+			this.sendMessages = sendMessages ?? throw new ArgumentNullException(nameof(sendMessages));
 		}
 
 		internal IReadOnlyList<GQIRow> Read(TemplateKind kind, int dmaId, int elementId)
 		{
-			// Never switch credentials or use a process-global SLNet connection.
-			var connection = dms.GetConnection();
-			if (connection == null || String.IsNullOrEmpty(user.Username) ||
-				!String.Equals(connection.UserDomainName, user.Username, StringComparison.OrdinalIgnoreCase))
-			{
-				throw new UnauthorizedAccessException("Caller identity could not be verified for template inspection.");
-			}
-
-			var securityResponse = Request<ClientSecurityChangeEventMessage>(new GetInfoMessage(InfoType.ClientSecurity));
-			if (securityResponse.uia == null)
-			{
-				throw new NotSupportedException("The DMS did not return a caller security key.");
-			}
-
-			var security = new ClientSecurity(securityResponse.uia);
-			if (!security.IsAllowedOnElement(dmaId, elementId))
-			{
-				throw new UnauthorizedAccessException("The caller cannot inspect the requested element.");
-			}
-
 			var elementRequest = new GetElementByIDMessage(dmaId, elementId);
-			security.CheckPermissions(elementRequest);
 			var element = Request<ElementInfoEventMessage>(elementRequest);
 			if (element.DataMinerID != dmaId || element.ElementID != elementId || element.IsDeleted)
 			{
@@ -59,7 +35,6 @@ namespace ElementTemplates
 			}
 
 			var protocolRequest = new GetProtocolMessage(element.Protocol, element.ProtocolVersion);
-			security.CheckPermissions(protocolRequest);
 			var protocol = Request<GetProtocolInfoResponseMessage>(protocolRequest);
 			if (!String.Equals(protocol.Name, element.Protocol, StringComparison.Ordinal) || String.IsNullOrEmpty(protocol.Version))
 			{
@@ -69,17 +44,17 @@ namespace ElementTemplates
 			context.SetProtocol(protocol);
 			if (kind == TemplateKind.Alarm)
 			{
-				ReadAlarm(context, security, context.AssignedTemplate, "root", new HashSet<string>(StringComparer.Ordinal));
+				ReadAlarm(context, context.AssignedTemplate, "root", new HashSet<string>(StringComparer.Ordinal));
 			}
 			else
 			{
-				ReadTrend(context, security);
+				ReadTrend(context);
 			}
 
 			return context.Rows;
 		}
 
-		private void ReadAlarm(TemplateContext context, ClientSecurity security, string name, string path, HashSet<string> ancestors)
+		private void ReadAlarm(TemplateContext context, string name, string path, HashSet<string> ancestors)
 		{
 			if (ancestors.Count >= 128)
 			{
@@ -92,7 +67,6 @@ namespace ElementTemplates
 			}
 
 			var request = new GetAlarmTemplateMessage(context.Protocol, context.TemplateVersion, name) { AsOneObject = true };
-			security.CheckPermissions(request);
 			var template = Request<AlarmTemplateEventMessage>(request);
 			context.VerifyTemplate(template.Protocol, template.Version, template.Name, name);
 			if (template.IsDeleted || template.TemplateParams == null || template.GroupEntries == null)
@@ -133,16 +107,15 @@ namespace ElementTemplates
 				var childPath = path + "/" + i.ToString(CultureInfo.InvariantCulture);
 				context.Add("GroupEntry", "Configured", name, childPath, i, null, entry, null);
 				// Disabled and scheduled members still contain configured rules.
-				ReadAlarm(context, security, entry.Name, childPath, ancestors);
+				ReadAlarm(context, entry.Name, childPath, ancestors);
 			}
 
 			ancestors.Remove(name);
 		}
 
-		private void ReadTrend(TemplateContext context, ClientSecurity security)
+		private void ReadTrend(TemplateContext context)
 		{
 			var request = new GetTrendingTemplateInfoMessage(context.Protocol, context.TemplateVersion, context.AssignedTemplate);
-			security.CheckPermissions(request);
 			var template = Request<GetTrendingTemplateInfoResponseMessage>(request);
 			context.VerifyTemplate(template.Protocol, template.Version, template.Name, context.AssignedTemplate);
 			if (template.Parameters == null)
@@ -161,7 +134,7 @@ namespace ElementTemplates
 
 		private T Request<T>(ClientRequestMessage request) where T : DMSMessage
 		{
-			var response = dms.SendMessages(request);
+			var response = sendMessages(new DMSMessage[] { request });
 			if (response == null || response.Length != 1 || !(response[0] is T typed))
 			{
 				throw new NotSupportedException("Expected one " + typeof(T).Name + " response for " + request.GetType().Name + ".");

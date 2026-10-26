@@ -6,9 +6,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using Newtonsoft.Json.Linq;
-using Skyline.DataMiner.Core.GQI.Extensions;
+using Skyline.DataMiner.Analytics.GenericInterface;
 using YamlDotNet.RepresentationModel;
 
 [TestClass]
@@ -43,7 +42,8 @@ public sealed class AssistantContractTests
 			var type = typeof(AlarmTemplateSource).Assembly.GetType((string)identity["TypeFullName"]!, true)!;
 			Assert.AreEqual(type.Name, (string)identity["TypeName"]!);
 			Assert.IsTrue(typeof(IGQIDataSource).IsAssignableFrom(type));
-			var source = Activator.CreateInstance(type, Mock.Of<IGQIDMSInterface>(), Mock.Of<IGQIUser>(), Mock.Of<IGQILogger>())!;
+			Assert.IsTrue(typeof(IGQIOnInit).IsAssignableFrom(type));
+			var source = Activator.CreateInstance(type)!;
 			var columns = ((IGQIDataSource)source).GetColumns();
 			var toolColumns = ((YamlSequenceNode)document.Children[new YamlScalarNode("columns")]).Children.Cast<YamlMappingNode>().ToArray();
 			CollectionAssert.AreEqual(columns.Select(column => column.Name).ToArray(), toolColumns.Select(column => Scalar(column, "name")).ToArray());
@@ -60,7 +60,7 @@ public sealed class AssistantContractTests
 			CollectionAssert.AreEqual(arguments.Select(argument => argument.Name).ToArray(), toolArguments.Select(argument => Scalar(argument, "name")).ToArray());
 			Assert.IsTrue(arguments[0].IsRequired && arguments[0] is GQIStringArgument);
 			Assert.AreEqual("String", Scalar(toolArguments[0], "type"));
-			new TemplateQuery(TemplateKind.Alarm, new TemplateReader(Mock.Of<IGQIDMSInterface>(), Mock.Of<IGQIUser>()), Mock.Of<IGQILogger>())
+			new TemplateQuery(TemplateKind.Alarm)
 				.SetTarget(Scalar(toolArguments[0], "example"));
 		}
 	}

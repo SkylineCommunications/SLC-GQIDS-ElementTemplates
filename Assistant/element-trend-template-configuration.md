@@ -1,7 +1,7 @@
 ---
 name: "element-trend-template-configuration"
 description: "Inspect every configured trend template parameter/row rule for one exact element, including duplicate, filtered, and disabled rules with separate real-time and average enablement. Not a live trend-coverage verdict."
-dataSource: '{"DataSourceInterface":"Skyline.DataMiner.Core.GQI.Extensions.IGQIDataSource","ScriptName":"ElementTemplates","LibraryName":"ElementTemplates","TypeFullName":"ElementTemplates.TrendTemplateSource","TypeName":"TrendTemplateSource"}'
+dataSource: '{"DataSourceInterface":"Skyline.DataMiner.Analytics.GenericInterface.IGQIDataSource","ScriptName":"ElementTemplates","LibraryName":"ElementTemplates","TypeFullName":"ElementTemplates.TrendTemplateSource","TypeName":"TrendTemplateSource"}'
 inputArguments:
   - name: "elementID"
     type: "String"

@@ -23,21 +23,25 @@ results. Both sources use normal GQI fetch/paging.
 separate include/exclude field, and excluded-row completeness is not verified.
 The full all-configured-rows requirement remains blocked pending supported API
 clarification and read-only host comparison ([API investigation](https://github.com/SkylineCommunications/SLC-GQIDS-ElementTemplates/blob/df322046586fa036921e341561b9bb7856b7e02e/README.md)).
-Package installation succeeded on `slc-h42-g06.skyline.local` (DataMiner 10.6.10).
-Live GQI/Assistant query acceptance has not been performed.
+The previous Core GQI package was installed on `slc-h42-g06.skyline.local`.
+The legacy replacement has not been deployed or accepted in live queries.
 
 ## Build and use
 
 Requires Windows, .NET Framework 4.8, and a .NET SDK. The package targets
-**DataMiner 10.6.10 or later with the GQI DxM enabled** (Core GQI API 1.4.0,
-[compatibility table](https://www.nuget.org/packages/Skyline.DataMiner.Core.GQI.Extensions/1.4.0)).
+**DataMiner 10.5.0 CU0 or later**. Uses the legacy `SLAnalyticsTypes` GQI API
+and SLNetTypes 10.5.0.1, with caller-scoped DMS access supplied by `OnInit`.
+No separate identity/security-key checks or alternate credentials are used;
+server permission failures propagate. Runtime acceptance on CU0 is unverified.
+This replaces the Core GQI API implementation; refresh existing queries and
+Assistant registrations to use the legacy interface identity.
 
 ```powershell
 dotnet build ElementTemplates.sln -c Release --warnaserror
 dotnet test ElementTemplates.Tests\ElementTemplates.Tests.csproj -c Release --no-build
 ```
 
-Install `ElementTemplates\bin\Release\net48\DataMinerBuild\ElementTemplates.1.0.0.dmapp`
+Install `ElementTemplates\bin\Release\net48\DataMinerBuild\ElementTemplates.2.0.0.dmapp`
 on a compatible system, then select either source under **Get custom data**.
 Copy `Assistant\*.md` to the Assistant host's
 `C:\ProgramData\Skyline Communications\DataMiner Assistant\Synced Documents\Context\Custom\Adhoc`.
